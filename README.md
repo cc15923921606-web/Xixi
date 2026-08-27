@@ -151,7 +151,10 @@ docs/                隐私、授权、排障和发布文档
 
 ## 开源组件与致谢
 
-昔夕建立在许多优秀的开源项目之上。感谢这些项目的维护者与贡献者，使本地语音、QQ 通讯、语音识别、模型接入和 Windows 桌面体验成为可能。
+昔夕建立在 GPT-SoVITS、faster-whisper、NapCatQQ、OneBot、Ollama、pywebview、OpenAI Python SDK、OpenCV、FFmpeg、Lucide 等项目之上。主要项目、用途、源码链接和许可边界见 [第三方组件与致谢](THIRD_PARTY_NOTICES.md)；完整依赖清单可在下方展开。
+
+<details>
+<summary><strong>查看完整第三方组件与依赖清单</strong></summary>
 
 下面的清单覆盖昔夕源码直接调用、公开安装包直接携带、环境配置直接下载，以及构建发布流程直接使用的第三方项目。操作系统自带组件不重复列出；第三方项目继续递归使用的依赖以其包内元数据和许可证文件为准。
 
@@ -261,6 +264,8 @@ NapCatQQ 直接使用 `express` 与 `ws`，并随包携带以下 Node.js 模块�
 | GitHub Actions、`actions/checkout`、`actions/setup-python`、`actions/setup-node` | 持续集成与公开仓库检查 |
 
 各组件的版权与许可证归原作者所有；昔夕对这些项目的使用不代表相关项目、服务或维护者为昔夕提供背书。关键组件的第三方声明、随项目提供的许可证文本和再分发限制见 [第三方声明](THIRD_PARTY_NOTICES.md) 与 [`third_party_licenses/`](third_party_licenses/)。若发现署名、依赖或授权信息需要补充，欢迎通过 [Issues](https://github.com/lianhua99520/Xixi/issues) 提醒维护者。
+
+</details>
 
 ## 开源许可
 
