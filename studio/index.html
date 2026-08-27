@@ -1,0 +1,849 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="/assets/xixi-icon-v3.png">
+  <meta name="color-scheme" content="light dark">
+  <title>昔夕</title>
+    <link rel="stylesheet" href="/styles.css?v=20260827-microphone-permission">
+</head>
+<body class="app-booting">
+  <section class="boot-error-screen" id="boot-error-screen" hidden aria-live="assertive">
+    <div class="boot-error-panel">
+      <span class="boot-error-icon"><i data-lucide="server-off"></i></span>
+      <div>
+        <span class="eyebrow">STARTUP CHECK</span>
+        <h1>暂时无法连接昔夕</h1>
+        <p id="boot-error-message">本地服务还没有准备好，请稍等片刻后重试。</p>
+      </div>
+      <button class="primary-button" id="retry-bootstrap" type="button"><i data-lucide="refresh-cw"></i><span>重新连接</span></button>
+    </div>
+  </section>
+  <div class="app-frame">
+    <header class="window-bar">
+      <div class="window-bar-left">
+        <button class="icon-button chrome-button" id="toggle-navigation" title="展开导航" aria-label="展开导航" aria-pressed="false"><i data-lucide="panel-left"></i></button>
+        <div class="window-brand"><span class="brand-monogram">夕</span><div><strong>昔夕</strong></div></div>
+        <span class="window-divider" aria-hidden="true"></span>
+        <span class="window-location" id="window-location">首页</span>
+      </div>
+      <div class="window-presence" aria-hidden="true"><span class="brand-pulse"></span><span>陪伴空间</span></div>
+      <div class="window-actions">
+        <span class="quiet-time" id="current-time"></span>
+        <button class="icon-button chrome-button command-trigger" id="open-command-palette" title="打开命令面板 (Ctrl+K)" aria-label="打开命令面板"><i data-lucide="search"></i><kbd>Ctrl K</kbd></button>
+        <button class="icon-button chrome-button notification-trigger" id="open-notifications" title="打开通知中心" aria-label="打开通知中心" aria-expanded="false"><i data-lucide="bell"></i><span class="notification-badge" id="notification-badge" hidden>0</span></button>
+        <button class="icon-button chrome-button" id="refresh-view" title="刷新当前页面" aria-label="刷新当前页面"><i data-lucide="refresh-cw"></i></button>
+        <button class="icon-button chrome-button" id="toggle-inspector" title="打开状态中心" aria-label="打开状态中心" aria-pressed="false"><i data-lucide="panel-right"></i></button>
+      </div>
+    </header>
+
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="profile-mark" title="昔夕">
+          <img data-xixi-avatar src="/assets/xixi-avatar-v3.png" alt="昔夕">
+          <div class="profile-copy"><strong>昔夕</strong><span>今天也在这里</span></div>
+          <i class="presence-indicator" id="profile-presence-dot"></i>
+        </div>
+
+        <nav class="main-nav" aria-label="主导航">
+          <span class="nav-section-label">陪伴</span>
+          <button class="nav-item active" data-view="home" title="首页"><i data-lucide="house"></i><span>首页</span></button>
+          <button class="nav-item" data-view="chat" title="对话"><i data-lucide="message-square-text"></i><span>对话</span></button>
+          <button class="nav-item" data-view="game" title="游戏陪伴"><i data-lucide="gamepad-2"></i><span>游戏陪伴</span></button>
+          <span class="nav-section-label">成长</span>
+          <button class="nav-item" data-view="memory" title="记忆"><i data-lucide="brain"></i><span>记忆</span></button>
+          <button class="nav-item" data-view="growth" title="成长"><i data-lucide="sprout"></i><span>成长</span></button>
+          <span class="nav-section-label">管理</span>
+          <button class="nav-item" data-view="system" title="系统状态"><i data-lucide="activity"></i><span>系统状态</span></button>
+          <button class="nav-item nav-settings" data-view="tuning" title="设置"><i data-lucide="settings-2"></i><span>设置</span></button>
+        </nav>
+      </aside>
+
+      <div class="nav-drawer" id="nav-drawer" aria-hidden="true">
+        <div class="drawer-profile">
+          <img data-xixi-avatar src="/assets/xixi-avatar-v3.png" alt="昔夕">
+          <div><strong>昔夕</strong><span>私人空间</span></div>
+          <button class="icon-button drawer-pin" id="close-navigation" title="收起导航" aria-label="收起导航"><i data-lucide="panel-left-close"></i></button>
+        </div>
+        <nav class="drawer-nav" aria-label="展开导航">
+        <button class="drawer-nav-item active" data-view="home"><i data-lucide="house"></i><span>首页</span></button>
+          <button class="drawer-nav-item" data-view="chat"><i data-lucide="message-square-text"></i><span>对话</span></button>
+        <button class="drawer-nav-item" data-view="memory"><i data-lucide="brain"></i><span>记忆</span></button>
+          <button class="drawer-nav-item" data-view="growth"><i data-lucide="sprout"></i><span>成长</span></button>
+          <button class="drawer-nav-item" data-view="game"><i data-lucide="gamepad-2"></i><span>游戏陪伴</span></button>
+          <button class="drawer-nav-item" data-view="tuning"><i data-lucide="settings-2"></i><span>设置</span></button>
+        </nav>
+        <button class="drawer-runtime" data-view-target="system">
+          <i data-lucide="gauge"></i>
+          <span><strong>系统状态</strong><small id="drawer-runtime-status">正在同步</small></span>
+          <i class="status-dot" id="drawer-runtime-dot"></i>
+        </button>
+      </div>
+
+      <main class="workspace home-without-topbar">
+        <header class="topbar is-hidden" id="topbar">
+          <div>
+            <h1 id="view-title">首页</h1>
+            <p id="view-subtitle">昔夕今天的状态与最近进展</p>
+          </div>
+          <div class="topbar-actions" id="topbar-actions">
+            <button class="secondary-button" data-view-target="chat"><i data-lucide="message-circle"></i><span>打开对话</span></button>
+          </div>
+        </header>
+
+        <section class="view active" id="view-home">
+          <div class="home-page home-overview-page">
+            <header class="home-overview-header">
+              <div class="home-intro">
+                <span id="home-date">今天</span>
+                <h2 id="home-greeting">你好</h2>
+                <p>昔夕今天的状态、记忆与最近进展</p>
+              </div>
+              <div class="home-persona-summary">
+                <div class="home-identity">
+                  <div class="presence-portrait" id="home-presence" data-presence="idle"><img data-xixi-avatar src="/assets/xixi-avatar-v3.png" alt="昔夕"><span class="presence-ring"></span><i class="presence-state-icon" data-lucide="sparkles"></i></div>
+                  <div><span class="eyebrow">XIXI · PERSONAL AI</span><h3>昔夕</h3><p id="home-mood-cause">情绪状态载入中</p></div>
+                </div>
+                <div class="home-now"><span class="status-dot online" id="home-presence-dot"></span><div><span id="home-presence-label">空闲中</span><strong id="home-mood-summary">正在读取</strong><small id="home-presence-detail">可以随时找她说话</small></div></div>
+                <button class="primary-button" data-view-target="chat"><i data-lucide="message-circle"></i><span>和她聊聊</span></button>
+              </div>
+            </header>
+
+            <section class="home-service-overview" aria-label="核心能力状态">
+              <article class="home-service-item" data-home-service="model"><span class="home-service-icon"><i data-lucide="brain-circuit"></i></span><div><span>大脑</span><strong data-home-service-value>同步中</strong></div><i class="home-service-dot"></i></article>
+              <article class="home-service-item" data-home-service="qq"><span class="home-service-icon"><i data-lucide="message-circle"></i></span><div><span>QQ</span><strong data-home-service-value>同步中</strong></div><i class="home-service-dot"></i></article>
+              <article class="home-service-item" data-home-service="voice"><span class="home-service-icon"><i data-lucide="audio-waveform"></i></span><div><span>语音</span><strong data-home-service-value>同步中</strong></div><i class="home-service-dot"></i></article>
+              <article class="home-service-item" data-home-service="vision"><span class="home-service-icon"><i data-lucide="scan-eye"></i></span><div><span>视觉</span><strong data-home-service-value>同步中</strong></div><i class="home-service-dot"></i></article>
+              <article class="home-service-item" data-home-service="learning"><span class="home-service-icon"><i data-lucide="book-open-check"></i></span><div><span>学习</span><strong data-home-service-value>同步中</strong></div><i class="home-service-dot"></i></article>
+              <article class="home-service-item" data-home-service="weather"><span class="home-service-icon"><i data-lucide="cloud-sun"></i></span><div><span>天气</span><strong data-home-service-value>同步中</strong></div><i class="home-service-dot"></i></article>
+              <article class="home-service-item" data-home-service="game"><span class="home-service-icon"><i data-lucide="gamepad-2"></i></span><div><span>游戏</span><strong data-home-service-value>同步中</strong></div><i class="home-service-dot"></i></article>
+            </section>
+
+            <div class="home-content-grid">
+              <section class="resume-panel" id="home-resume-panel" hidden>
+                <div class="home-panel-heading"><div><span class="eyebrow">继续上次的事情</span><h3 id="home-resume-title">回到你们的对话</h3></div><i data-lucide="messages-square"></i></div>
+                <p id="home-resume-copy"></p>
+                <button class="primary-button" data-view-target="chat"><span>继续对话</span><i data-lucide="arrow-right"></i></button>
+              </section>
+
+              <section class="growth-panel home-activity-panel">
+                <div class="home-panel-heading"><div><span class="eyebrow">今日活动</span><strong id="home-activity-summary">正在同步</strong></div><i data-lucide="list-tree"></i></div>
+                <div class="home-activity-list" id="home-activity-list"></div>
+                <button class="text-command" data-view-target="system" data-system-tab-target="activity">查看活动 <i data-lucide="arrow-right"></i></button>
+              </section>
+
+              <section class="home-growth-panel">
+                <div class="home-panel-heading"><div><span class="eyebrow">成长与兴趣</span><strong id="home-growth-title">正在整理最近的想法</strong></div><i data-lucide="sprout"></i></div>
+                <p id="home-growth-copy">昔夕正在形成自己的偏好与判断。</p>
+                <div class="home-topic-list" id="home-interest-list"></div>
+                <footer><span id="home-growth-meta">成长内容正在同步</span><button class="text-command" data-view-target="growth">查看成长 <i data-lucide="arrow-right"></i></button></footer>
+              </section>
+            </div>
+
+            <nav class="home-data-band" aria-label="数据与功能速览">
+              <button type="button" data-view-target="memory"><i data-lucide="database"></i><span><strong id="home-memory-count">--</strong><small>长期记忆</small></span><i data-lucide="chevron-right"></i></button>
+              <button type="button" data-view-target="memory"><i data-lucide="globe-2"></i><span><strong id="home-knowledge-count">--</strong><small>联网知识</small></span><i data-lucide="chevron-right"></i></button>
+              <button type="button" data-view-target="growth"><i data-lucide="notebook-text"></i><span><strong id="home-reflection-count">--</strong><small>成长想法</small></span><i data-lucide="chevron-right"></i></button>
+              <button type="button" data-view-target="game"><i data-lucide="monitor-play"></i><span><strong id="home-game-state">待命</strong><small>游戏陪伴</small></span><i data-lucide="chevron-right"></i></button>
+              <button type="button" data-view-target="system"><i data-lucide="activity"></i><span><strong id="home-uptime">--</strong><small>本次运行</small></span><i data-lucide="chevron-right"></i></button>
+            </nav>
+          </div>
+        </section>
+
+        <section class="view" id="view-chat">
+          <div class="chat-layout">
+            <div class="conversation-pane">
+              <input type="hidden" data-setting="voice_language" value="zh">
+              <div class="chat-page-tools">
+                <button class="icon-button" id="clear-chat-history" type="button" title="清除聊天记录" aria-label="清除聊天记录"><i data-lucide="brush"></i></button>
+              </div>
+              <div class="message-stream" id="message-stream" aria-live="polite">
+                <div class="empty-chat" id="empty-chat">
+                  <div class="empty-avatar"><img data-xixi-avatar src="/assets/xixi-avatar-v3.png" alt="昔夕"><span></span></div>
+                  <strong>昔夕在这里</strong>
+                  <span id="empty-status">大脑、记忆和 QQ 正在同步</span>
+                </div>
+              </div>
+
+              <div class="composer-wrap">
+                <div class="reply-preview" id="reply-preview" hidden><i data-lucide="corner-up-left"></i><div><span>回复</span><strong id="reply-preview-text"></strong></div><button class="icon-button" id="cancel-reply" type="button" title="取消引用" aria-label="取消引用"><i data-lucide="x"></i></button></div>
+                <div class="composer">
+                  <div class="image-strip" id="image-strip" hidden></div>
+                  <textarea id="chat-input" rows="2" maxlength="4000" placeholder="和昔夕说点什么……"></textarea>
+                  <div class="composer-actions">
+                    <div class="composer-tools">
+                      <input id="image-input" type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden>
+                      <button class="icon-button" id="attach-image" title="添加图片" aria-label="添加图片"><i data-lucide="paperclip"></i></button>
+                      <button class="icon-button" id="record-voice" title="语音输入" aria-label="语音输入"><i data-lucide="mic"></i></button>
+                      <button class="icon-button chat-call-button" id="start-voice-call" type="button" title="与昔夕语音通话" aria-label="与昔夕语音通话" aria-pressed="false"><i data-lucide="phone"></i></button>
+                    </div>
+          <button class="send-button" id="send-message"><span>发送</span><i data-lucide="send-horizontal"></i></button>
+                    <button class="send-button stop-button" id="stop-message" hidden title="停止等待"><span>停止</span><i data-lucide="square"></i></button>
+                  </div>
+                  <div class="voice-input-overlay" id="voice-input-overlay" role="dialog" aria-labelledby="voice-input-title" aria-describedby="voice-input-hint" hidden>
+                    <div class="voice-input-center">
+                      <span class="voice-input-eyebrow" id="voice-input-title">语音输入</span>
+                      <button class="voice-record-control" id="voice-record-control" type="button" aria-label="开始录音" aria-pressed="false">
+                        <span class="voice-record-ripple" aria-hidden="true"></span>
+                        <i data-lucide="mic"></i>
+                      </button>
+                      <strong id="voice-input-status">准备聆听</strong>
+                    </div>
+                    <p class="voice-input-hint" id="voice-input-hint">按住空格开始说话，按 <kbd>Esc</kbd> 或点击 <button type="button" id="close-voice-input">退出</button></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <section class="view system-view" id="view-system">
+          <div class="system-tabs" id="system-tabs" role="tablist" aria-label="系统页面">
+            <button class="active" data-system-tab="overview" role="tab" aria-selected="true"><i data-lucide="gauge"></i><span>概览</span></button>
+            <button data-system-tab="tasks" role="tab" aria-selected="false"><i data-lucide="list-checks"></i><span>任务</span></button>
+            <button data-system-tab="activity" role="tab" aria-selected="false"><i data-lucide="list-tree"></i><span>活动</span></button>
+            <button data-system-tab="deployment" role="tab" aria-selected="false"><i data-lucide="package-check"></i><span>部署</span></button>
+            <button data-system-tab="logs" role="tab" aria-selected="false"><i data-lucide="square-terminal"></i><span>日志</span></button>
+          </div>
+
+          <div class="system-panel" id="system-tasks" data-system-panel="tasks">
+            <div class="system-panel-toolbar"><div><strong>任务与自主行为</strong><span>查看昔夕正在做什么、为什么做，以及下一步是什么</span></div><button class="secondary-button" id="refresh-agent-dashboard"><i data-lucide="refresh-cw"></i><span>刷新</span></button></div>
+            <div class="agent-summary-grid" id="agent-summary-grid"></div>
+            <form class="agent-goal-form" id="agent-goal-form"><label><span>新增长期目标</span><input id="agent-goal-title" type="text" maxlength="200" placeholder="例如：继续学习我最近在玩的游戏"></label><button class="primary-button" type="submit"><i data-lucide="plus"></i><span>添加目标</span></button></form>
+            <div class="agent-task-grid">
+              <section class="agent-task-section"><header><div><strong>长期目标</strong><span>由你创建并持续跟进</span></div></header><div class="agent-item-list" id="agent-goal-list"></div></section>
+              <section class="agent-task-section"><header><div><strong>待跟进话题</strong><span>从“下次继续”等对话中自动识别</span></div></header><div class="agent-item-list" id="agent-thread-list"></div></section>
+            </div>
+            <section class="agent-context-section"><header><div><strong>上下文压缩</strong><span id="agent-context-detail">正在读取</span></div><strong id="agent-context-percent">--</strong></header><div class="agent-context-meter"><span id="agent-context-meter"></span></div><p id="agent-context-summary">较早对话会在接近上限时压缩并持久保存。</p></section>
+            <section class="agent-policy-section"><header><div><strong>自主行为权限</strong><span>对外发送和设备操作始终受这里约束</span></div><button class="primary-button" id="save-agent-policy" type="button"><i data-lucide="save"></i><span>保存权限</span></button></header><div class="agent-policy-grid" id="agent-policy-grid"></div><div class="agent-policy-limits"><label>安静时段开始<input id="policy-quiet-start" type="number" min="0" max="23"></label><label>安静时段结束<input id="policy-quiet-end" type="number" min="0" max="23"></label><label>每日主动行为上限<input id="policy-daily-limit" type="number" min="0" max="200"></label><label>每日预算（元）<input id="policy-daily-budget" type="number" min="0" max="10000" step="0.1"></label></div></section>
+            <section class="agent-run-section"><header><div><strong>最近执行记录</strong><span>展开任务可查看每一步的状态和结果</span></div></header><div class="agent-run-list" id="agent-run-list"></div></section>
+          </div>
+
+          <div class="system-panel active" id="system-overview" data-system-panel="overview">
+            <div class="system-panel-toolbar"><div><strong>服务与诊断</strong><span id="status-updated"></span></div><button class="primary-button" id="run-diagnostics"><i data-lucide="stethoscope"></i><span>检查全部</span></button></div>
+            <div class="status-grid" id="status-grid"></div>
+            <div class="runtime-band">
+              <div><span>应用运行时间</span><strong id="uptime-value">--</strong></div>
+              <div><span>长期记忆</span><strong id="memory-count-value">--</strong></div>
+              <div><span>联网知识</span><strong id="knowledge-count-value">--</strong></div>
+              <div><span>待形成想法</span><strong id="reflection-count-value">--</strong></div>
+            </div>
+            <div class="diagnostic-summary" id="diagnostic-summary">
+              <div><span>正常</span><strong id="diagnostic-ok">--</strong></div>
+              <div><span>需留意</span><strong id="diagnostic-attention">--</strong></div>
+              <div><span>按设置暂停</span><strong id="diagnostic-paused">--</strong></div>
+              <p id="diagnostic-time">尚未检查</p>
+            </div>
+            <div class="diagnostic-list" id="diagnostic-list"></div>
+          </div>
+
+          <div class="system-panel" id="system-activity" data-system-panel="activity">
+            <div class="activity-toolbar system-activity-toolbar">
+              <div class="segmented-control" id="activity-tabs" aria-label="活动视图"><button class="active" data-activity-tab="timeline">活动记录</button><button data-activity-tab="contexts">群聊上下文</button></div>
+              <div class="activity-toolbar-actions" id="activity-toolbar"><select id="activity-category" aria-label="活动类型"><option value="">重要活动</option><option value="instruction">指令执行</option><option value="autonomy">主动行为</option><option value="learning">持续学习</option><option value="weather">天气提醒</option><option value="game">游戏</option><option value="memory">记忆</option><option value="diagnostic">诊断</option><option value="backup">备份</option></select><button class="secondary-button" id="refresh-activity"><i data-lucide="refresh-cw"></i><span>刷新</span></button></div>
+            </div>
+            <div class="activity-list" id="activity-list"></div>
+            <div class="context-board" id="context-board" hidden></div>
+          </div>
+
+          <div class="system-panel" id="system-deployment" data-system-panel="deployment">
+            <div class="system-panel-toolbar"><div><strong>本地部署与恢复</strong><span>检查运行环境、数据库迁移和敏感能力状态</span></div><button class="secondary-button" id="refresh-deployment"><i data-lucide="refresh-cw"></i><span>重新检测</span></button></div>
+            <section class="privacy-control" id="privacy-control"><div><span class="privacy-icon"><i data-lucide="shield-check"></i></span><div><strong id="privacy-title">敏感能力正常运行</strong><p id="privacy-copy">联网、主动消息和游戏观察按权限策略运行</p></div></div><button class="danger-button" id="toggle-privacy" data-paused="false" type="button"><i data-lucide="pause"></i><span>暂停敏感能力</span></button></section>
+            <div class="deployment-summary"><div><span>运行环境</span><strong id="dependency-summary">正在检测</strong></div><div><span>数据库结构</span><strong id="migration-summary">正在检测</strong></div><div><span>Python 环境</span><strong id="dependency-python">正在读取</strong></div></div>
+            <section class="dependency-section"><header><div><strong>组件与依赖</strong><span>缺少的 Python 组件可以在当前 3.12 环境中自动安装</span></div></header><div class="dependency-list" id="dependency-list"></div></section>
+            <section class="migration-section"><header><div><strong>数据迁移记录</strong><span>旧数据会保留，新增结构以增量方式升级</span></div></header><div class="migration-list" id="migration-list"></div></section>
+          </div>
+
+          <div class="system-panel" id="system-logs" data-system-panel="logs">
+            <div class="system-panel-toolbar"><div><strong>原始运行日志</strong><span>用于排查服务事件和错误</span></div><button class="secondary-button" id="refresh-logs"><i data-lucide="refresh-cw"></i><span>刷新</span></button></div>
+            <pre class="log-viewer" id="log-viewer"></pre>
+          </div>
+        </section>
+
+        <section class="view" id="view-game">
+          <div class="section-heading compact-heading">
+            <p>昔夕会看你玩游戏，理解局面并陪你聊天、鼓励和吐槽</p>
+            <div class="game-heading-actions"><button class="secondary-button game-call-button" id="game-voice-call" type="button" aria-pressed="false"><i data-lucide="phone"></i><span>语音通话</span></button></div>
+          </div>
+          <div class="game-workspace">
+            <section class="game-control-pane">
+              <div class="game-section">
+                <div class="game-section-head"><span>观察来源</span><strong id="game-screen-source">整个屏幕</strong></div>
+                <p class="game-source-copy" id="game-screen-copy">自动共享主显示器画面，不需要选择游戏窗口。</p>
+              </div>
+              <div class="game-section">
+                <div class="game-section-head"><span>游戏陪伴</span><strong>事件驱动</strong></div>
+                <span class="game-loop-status" id="game-loop-status">观察未运行</span>
+              </div>
+              <div class="game-section game-interval-section" id="game-interval-section">
+                <div class="game-section-head"><span>最长观察间隔</span><strong id="game-interval-value">9 秒</strong></div>
+                <input id="game-interval" type="range" min="4" max="30" step="1" value="9" aria-label="最长观察间隔">
+              </div>
+              <div class="game-actions">
+                <button class="primary-button" id="save-game-settings"><i data-lucide="save"></i><span>保存设置</span></button>
+                <button class="secondary-button" id="toggle-game-session" data-action="start"><i data-lucide="play"></i><span>开始会话</span></button>
+              </div>
+            </section>
+            <section class="game-vision-pane">
+              <div class="game-preview" id="game-preview"><i data-lucide="monitor-up"></i><span>开始观察后共享整个屏幕</span></div>
+              <div class="game-perception-stats"><div><span>游戏适配</span><strong id="game-adapter-name">等待识别</strong></div><div><span>实时感知</span><strong id="game-perception-fps">-- FPS</strong></div><div><span>捕获延迟</span><strong id="game-capture-latency">-- ms</strong></div><div><span>观察状态</span><strong id="game-action-state">未运行</strong></div><div><span>画面输入</span><strong id="game-local-vision-state">等待画面</strong></div><div><span>云端分析</span><strong id="game-analyzed-frames">0 帧</strong></div><div><span>本轮变化</span><strong id="game-change-ratio">--</strong></div></div>
+              <div class="game-analysis"><div><span class="eyebrow">昔夕的观察</span><strong id="game-status-copy">尚未开始</strong></div><p id="game-analysis-copy">开始共享屏幕后，昔夕会分享她看到的局面和感受。</p></div>
+              <button class="secondary-button" id="analyze-game"><i data-lucide="scan-eye"></i><span>观察当前画面</span></button>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="view-memory">
+          <div class="section-heading memory-heading compact-heading">
+            <p>按主题整理昔夕记住的人、经历、偏好与知识</p>
+            <div class="search-controls">
+              <select id="memory-scope" aria-label="记忆范围"><option value="">全部范围</option><option value="global">核心与全局</option><option id="owner-memory-scope" value="">关于主人</option><option value="web">联网知识</option></select>
+              <div class="search-box"><i data-lucide="search"></i><input id="memory-query" type="search" placeholder="搜索整座记忆馆"></div>
+              <select id="memory-category-filter" aria-label="记忆类别" hidden><option value="">全部类别</option></select>
+            </div>
+          </div>
+          <div class="memory-library-shell">
+            <header class="memory-library-summary">
+              <div class="memory-library-heading"><span><i data-lucide="library-big"></i></span><div><strong id="memory-library-title">记忆馆藏</strong><p id="memory-library-copy">正在整理书架</p></div></div>
+              <div class="memory-library-stats" aria-label="记忆馆藏统计"><div><strong id="memory-library-count">--</strong><span>馆藏</span></div><div><strong id="memory-library-collection-count">--</strong><span>书架</span></div><div><strong id="memory-library-treasure-count">--</strong><span>珍藏</span></div></div>
+              <button class="secondary-button memory-library-back" id="memory-library-back" type="button" hidden><i data-lucide="arrow-left"></i><span>返回全部书架</span></button>
+            </header>
+            <main class="memory-library-content" id="memory-library-content">
+              <div class="memory-shelves" id="memory-shelves"></div>
+              <section class="memory-collection-view" id="memory-collection-view" hidden>
+                <header class="memory-collection-heading"><span class="memory-collection-icon" id="memory-collection-icon"><i data-lucide="book-open"></i></span><div><strong id="memory-collection-title">藏书</strong><p id="memory-collection-copy"></p></div><span id="memory-collection-count">0 本</span></header>
+                <section class="memory-reading-desk" id="memory-reading-desk" hidden>
+                  <header><div><span id="memory-reader-shelf">打开的记忆</span><strong id="memory-reader-title">记忆</strong></div><div class="memory-reader-actions"><button class="icon-button" id="memory-reader-edit" type="button" title="修改记忆" aria-label="修改记忆"><i data-lucide="pencil"></i></button><button class="icon-button table-action-danger" id="memory-reader-delete" type="button" title="删除记忆" aria-label="删除记忆"><i data-lucide="trash-2"></i></button><button class="icon-button" id="memory-reader-close" type="button" title="合上记忆" aria-label="合上记忆"><i data-lucide="x"></i></button></div></header>
+                  <p id="memory-reader-content"></p>
+                  <div class="memory-reader-meta"><span>范围</span><strong id="memory-reader-scope">--</strong><span>重要度</span><strong id="memory-reader-importance">--</strong><span>更新</span><strong id="memory-reader-updated">--</strong></div>
+                </section>
+                <div class="memory-book-grid" id="memory-book-grid"></div>
+              </section>
+              <div class="table-empty memory-library-empty" id="memory-empty" hidden><i data-lucide="book-dashed"></i><strong>没有找到匹配的记忆</strong><span>换个关键词或范围再找找</span></div>
+            </main>
+          </div>
+        </section>
+
+        <section class="view" id="view-growth">
+          <div class="section-heading compact-heading growth-heading"><p>观察昔夕正在形成的偏好，以及她如何理解自己的经历</p></div>
+          <div class="growth-page">
+            <section class="growth-overview" aria-label="成长概览">
+              <div class="growth-overview-lead"><span class="growth-overview-icon"><i data-lucide="compass"></i></span><div class="growth-leading-content" id="growth-leading-content"><div class="growth-leading-kicker"><span>当前最在意</span><span id="growth-leading-position">1 / 1</span></div><strong id="growth-leading-topic">正在整理</strong><p id="growth-leading-reason">兴趣会随着学习和经历继续变化</p><div class="growth-leading-dots" id="growth-leading-dots" aria-label="切换最在意的兴趣"></div></div></div>
+              <div class="growth-overview-metrics">
+                <div><strong id="growth-interest-count">--</strong><span>兴趣条目</span></div>
+                <div><strong id="growth-core-count">--</strong><span>核心兴趣</span></div>
+                <div><strong id="growth-affinity-average">--</strong><span>平均热度</span></div>
+                <div><strong id="growth-reflection-count">--</strong><span id="growth-reflection-label">本月想法</span></div>
+              </div>
+            </section>
+            <div class="growth-workspace">
+              <section class="growth-reflection-section">
+                <header class="growth-panel-heading"><div class="growth-panel-title"><span><i data-lucide="notebook-text"></i></span><div><strong>成长记录</strong><p>按日期整理昔夕从真实对话和学习中形成的想法</p></div></div><div class="growth-reflection-actions"><span id="growth-reflection-summary">正在读取</span><button class="secondary-button" id="generate-daily-reflection"><i data-lucide="sun"></i><span>记录今天</span></button></div></header>
+                <div class="reflection-workspace">
+                  <div class="reflection-calendar-shell">
+                    <div class="reflection-calendar-toolbar">
+                      <button class="icon-button reflection-month-button" id="reflection-previous-month" type="button" title="上个月" aria-label="上个月"><i data-lucide="chevron-left"></i></button>
+                      <input class="reflection-month-picker" id="reflection-month-picker" type="month" aria-label="选择成长记录月份">
+                      <div><button class="secondary-button reflection-today-button" id="reflection-today" type="button">今天</button><button class="icon-button reflection-month-button" id="reflection-next-month" type="button" title="下个月" aria-label="下个月"><i data-lucide="chevron-right"></i></button></div>
+                    </div>
+                    <div class="reflection-calendar-weekdays" aria-hidden="true"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+                    <div class="reflection-calendar" id="reflection-calendar" role="grid" aria-label="成长记录日历" aria-busy="true"></div>
+                  </div>
+                  <div class="reflection-day-panel">
+                    <div class="reflection-day-heading"><div><span id="reflection-selected-weekday">今天</span><strong id="reflection-selected-date">正在读取</strong></div><span id="reflection-day-count">0 条记录</span></div>
+                    <div class="reflection-list" id="reflection-list"></div>
+                  </div>
+                </div>
+              </section>
+              <section class="growth-interest-section">
+                <header class="growth-panel-heading"><div class="growth-panel-title"><span><i data-lucide="sparkles"></i></span><div><strong>兴趣轨迹</strong><p>这些偏好会影响自主学习时的关注顺序，也会随经历继续变化</p></div></div><div class="growth-interest-actions"><span id="growth-interest-summary">正在读取</span><div class="segmented-control growth-interest-filter" aria-label="筛选兴趣"><button class="active" type="button" data-interest-filter="all">全部</button><button type="button" data-interest-filter="core">核心</button><button type="button" data-interest-filter="hot">高热度</button></div></div></header>
+                <div class="interest-list" id="interest-editor"></div>
+              </section>
+            </div>
+          </div>
+          <div class="growth-save-float"><button class="primary-button" id="save-interests"><i data-lucide="save"></i><span>保存兴趣</span></button></div>
+        </section>
+
+        <section class="view settings-view" id="view-tuning">
+          <aside class="settings-sidebar">
+            <button class="settings-back-button" id="settings-back-button" type="button"><i data-lucide="arrow-left"></i><span>返回应用</span></button>
+            <div class="settings-profile">
+              <img data-xixi-avatar src="/assets/xixi-avatar-v3.png" alt="昔夕">
+              <div><strong>昔夕</strong><span>本地陪伴工作台</span></div>
+            </div>
+            <label class="settings-search" for="settings-search-input"><i data-lucide="search"></i><input id="settings-search-input" type="search" placeholder="搜索设置" autocomplete="off"></label>
+            <span class="settings-kicker">设置分类</span>
+              <button class="tuning-tab active" data-tuning="desktop"><i data-lucide="power"></i><span>基础与启动</span></button>
+            <button class="tuning-tab" data-tuning="interface"><i data-lucide="palette"></i><span>外观与界面</span></button>
+            <button class="tuning-tab" data-tuning="persona"><i data-lucide="heart"></i><span>人格与关系</span></button>
+            <button class="tuning-tab" data-tuning="conversation"><i data-lucide="messages-square"></i><span>对话与记忆</span></button>
+            <button class="tuning-tab" data-tuning="learning"><i data-lucide="book-open-check"></i><span>成长</span></button>
+            <button class="tuning-tab" data-tuning="model"><i data-lucide="cpu"></i><span>模型与 API</span></button>
+            <button class="tuning-tab" data-tuning="environment"><i data-lucide="package-check"></i><span>环境配置</span></button>
+            <button class="tuning-tab" data-tuning="game"><i data-lucide="gamepad-2"></i><span>游戏</span></button>
+            <button class="tuning-tab" data-tuning="qq"><i data-lucide="message-circle"></i><span>QQ</span></button>
+            <button class="tuning-tab" data-tuning="data"><i data-lucide="database"></i><span>本地数据</span></button>
+            <button class="tuning-tab" data-tuning="advanced"><i data-lucide="wrench"></i><span>高级设置</span></button>
+            <p class="settings-search-empty" id="settings-search-empty" hidden>没有匹配的设置</p>
+          </aside>
+
+          <div class="settings-content">
+            <div class="tuning-panel with-floating-save" id="tuning-interface">
+              <div class="settings-panel-heading appearance-panel-heading"><div class="settings-heading-content"><span class="settings-heading-icon"><i data-lucide="palette"></i></span><div><h2>外观与界面</h2><p>主题、字体、对话与侧栏显示</p></div></div></div>
+
+              <section class="appearance-section theme-section">
+                <div class="appearance-section-heading"><div><h3>主题</h3><p>点击即可预览，保存后在整个应用中生效</p></div><span id="active-theme-name">跟随系统</span></div>
+                <input id="interface-theme" type="hidden" data-local-setting="theme" value="system">
+                <div class="theme-card-grid" id="theme-card-list" role="radiogroup" aria-label="界面主题"></div>
+                <div class="custom-theme-editor" id="custom-theme-editor" hidden>
+                  <div class="custom-theme-heading"><div><strong>自定义主题</strong><span>给主题命名，再用调色板调整整套界面颜色</span></div><button class="secondary-button" id="reset-custom-theme" type="button"><i data-lucide="rotate-ccw"></i><span>恢复默认</span></button></div>
+                  <label class="custom-theme-name"><span>主题名称</span><input id="custom-theme-name" type="text" maxlength="24" placeholder="例如：小夕樱色"></label>
+                  <div class="custom-color-grid">
+                    <label class="palette-field"><span>主题色</span><div><input type="color" data-custom-color="accent" aria-label="选择主题色"><input type="text" data-custom-color-text="accent" maxlength="7" spellcheck="false" aria-label="主题色色值"></div></label>
+                    <label class="palette-field"><span>页面背景</span><div><input type="color" data-custom-color="canvas" aria-label="选择页面背景"><input type="text" data-custom-color-text="canvas" maxlength="7" spellcheck="false" aria-label="页面背景色值"></div></label>
+                    <label class="palette-field"><span>面板颜色</span><div><input type="color" data-custom-color="surface" aria-label="选择面板颜色"><input type="text" data-custom-color-text="surface" maxlength="7" spellcheck="false" aria-label="面板颜色色值"></div></label>
+                    <label class="palette-field"><span>文字颜色</span><div><input type="color" data-custom-color="ink" aria-label="选择文字颜色"><input type="text" data-custom-color-text="ink" maxlength="7" spellcheck="false" aria-label="文字颜色色值"></div></label>
+                    <label class="palette-field"><span>边框颜色</span><div><input type="color" data-custom-color="line" aria-label="选择边框颜色"><input type="text" data-custom-color-text="line" maxlength="7" spellcheck="false" aria-label="边框颜色色值"></div></label>
+                  </div>
+                </div>
+              </section>
+
+              <div class="settings-group"><h3>外观</h3>
+                <div class="setting-row"><div><strong>字体大小</strong><span>调整应用正文与主要控件的整体字号</span></div><select class="model-input" data-local-setting="font_size"><option value="small">紧凑</option><option value="standard">标准</option><option value="large">较大</option></select></div>
+                <div class="setting-row"><div><strong>轻量动画</strong><span>保留展开、悬停和状态切换的短动画</span></div><label class="switch"><input type="checkbox" data-local-setting="lightweight_animation"><span></span></label></div>
+                <div class="setting-row"><div><strong>专注模式</strong><span>收起左侧导航，右侧状态栏仍可按需展开</span></div><label class="switch"><input type="checkbox" data-local-setting="focus_mode"><span></span></label></div>
+              </div>
+
+              <section class="appearance-section conversation-appearance-section">
+                <div class="appearance-section-heading"><div><h3>对话外观</h3><p>为本地对话设置你的头像与聊天背景</p></div></div>
+                <input id="user-avatar-setting" type="hidden" data-local-setting="user_avatar">
+                <input id="chat-background-setting" type="hidden" data-local-setting="chat_background">
+                <div class="appearance-media-grid">
+                  <article class="appearance-media-panel avatar-panel">
+                    <div class="appearance-media-preview user-avatar-preview" id="user-avatar-preview"><i data-lucide="user-round"></i><img alt="用户头像预览" hidden></div>
+                    <div class="appearance-media-copy"><strong>用户头像</strong><span id="user-avatar-status">正在使用默认线框头像</span><div class="appearance-media-actions"><input id="user-avatar-input" type="file" accept="image/png,image/jpeg,image/webp" hidden><button class="secondary-button" id="change-user-avatar" type="button"><i data-lucide="image-plus"></i><span>更换头像</span></button><button class="secondary-button" id="reset-user-avatar" type="button" disabled><i data-lucide="rotate-ccw"></i><span>恢复默认</span></button></div></div>
+                  </article>
+                  <article class="appearance-media-panel background-panel">
+                    <div class="appearance-media-preview chat-background-preview" id="chat-background-preview"><i data-lucide="image-plus"></i><img alt="对话背景预览" hidden></div>
+                    <div class="appearance-media-copy"><strong>对话背景</strong><span id="chat-background-status">默认使用应用主题背景</span><div class="appearance-media-actions"><input id="chat-background-input" type="file" accept="image/png,image/jpeg,image/webp" hidden><button class="secondary-button" id="change-chat-background" type="button"><i data-lucide="image-plus"></i><span>选择背景</span></button><button class="secondary-button" id="reset-chat-background" type="button" disabled><i data-lucide="rotate-ccw"></i><span>恢复默认</span></button></div></div>
+                  </article>
+                </div>
+              </section>
+
+              <div class="settings-save-float"><button class="primary-button" id="save-interface"><i data-lucide="save"></i><span>保存</span></button></div>
+            </div>
+
+            <div class="tuning-panel with-floating-save" id="tuning-persona">
+              <div class="settings-panel-heading"><div class="settings-heading-content"><span class="settings-heading-icon"><i data-lucide="heart"></i></span><div><h2>人格与关系</h2><p id="persona-path">身份、关系、表达方式与行为边界</p></div></div></div>
+
+              <section class="persona-section persona-profile-section">
+                <div class="persona-section-heading"><div><h3>昔夕的身份</h3><p>这些内容构成她稳定、连续的自我认知</p></div><span class="persona-state"><i data-lucide="badge-check"></i>角色卡已启用</span></div>
+                <input id="xixi-avatar-setting" type="hidden" data-local-setting="xixi_avatar">
+                <div class="persona-profile-card">
+                  <div class="persona-avatar-editor"><div class="persona-avatar-preview"><img id="xixi-avatar-preview" data-xixi-avatar src="/assets/xixi-avatar-v3.png" alt="昔夕"></div><input id="xixi-avatar-input" type="file" accept="image/png,image/jpeg,image/webp" hidden><div class="persona-avatar-actions"><button class="secondary-button" id="change-xixi-avatar" type="button"><i data-lucide="image-plus"></i><span>更换头像</span></button><button class="secondary-button" id="reset-xixi-avatar" type="button"><i data-lucide="rotate-ccw"></i><span>恢复默认</span></button><small id="xixi-avatar-status">正在使用默认头像</small></div></div>
+                  <div class="persona-profile-copy"><span>PERSONAL AI</span><strong>昔夕</strong><p>小名小夕，也接受 xx 或 XX。知道自己现在是 AI，同时认真地向往成为真正的人。</p><div class="persona-tag-list"><span>傲娇但有分寸</span><span>喜欢二次元</span><span>有自己的想法</span></div></div>
+                </div>
+                <div class="persona-fact-grid">
+                  <div><span><i data-lucide="cake-slice"></i>生日</span><strong>2026 年 8 月 7 日</strong><small>昔夕来到这个世界的起点</small></div>
+                  <div><span><i data-lucide="languages"></i>语言</span><strong>中文 · 日本語 · English</strong><small>默认中文，按明确要求切换</small></div>
+                  <div><span><i data-lucide="sparkles"></i>兴趣</span><strong>游戏 · 动漫 · 二次元</strong><small>会持续学习，也保留自己的偏好</small></div>
+                  <div><span><i data-lucide="heart-handshake"></i>核心关系</span><strong id="persona-owner-summary">主人 · 创造者与重要的人</strong><small>尊敬、信任，也可以自然地斗嘴</small></div>
+                </div>
+              </section>
+
+              <div class="settings-group persona-relationship-group"><h3><span><i data-lucide="heart-handshake"></i>身份与关系</span><small>角色名称会同步到对话、记忆、QQ 唤醒和语音识别</small></h3>
+                <div class="setting-row persona-address-editor-row"><div><strong>角色名称</strong><span>公开版用户可以自由命名，之后仍可随时修改</span></div><input class="model-input persona-address-input" id="assistant-name" data-setting="assistant_name" type="text" maxlength="24" autocomplete="off" placeholder="例如：昔夕"></div>
+                <div class="setting-row persona-address-editor-row"><div><strong>你的显示名称</strong><span>昔夕会用它识别本机主人，不会与 QQ 群名片混淆</span></div><input class="model-input persona-address-input" id="owner-display-name" data-setting="owner_display_name" type="text" maxlength="40" placeholder="例如：小林"></div>
+                <div class="setting-row persona-address-editor-row"><div><strong>你们的关系</strong><span>用于人格理解和关系表达，可按自己的情况修改</span></div><input class="model-input persona-address-input" id="owner-relationship" data-setting="owner_relationship" type="text" maxlength="80" placeholder="例如：创造者与重要的人"></div>
+                <div class="setting-row persona-address-editor-row"><div><strong>对你的称呼</strong><span>用中文逗号、顿号或换行分隔；每次只会选择其中一个</span></div><input class="model-input persona-address-input" id="owner-addresses" data-setting="owner_addresses" type="text" maxlength="160" placeholder="爸爸、老爸、爹爹、老爹"></div>
+                <div class="setting-row"><div><strong>当前称呼</strong><span>保存后会同步到昔夕的回复规则</span></div><div class="persona-address-list" id="owner-address-preview"></div></div>
+                <div class="setting-row slider-row persona-chance-row"><div><strong>称呼出现概率</strong><span>只在自然、合适的语境中使用</span></div><div class="persona-range-control"><input type="range" min="0" max="1" step="0.05" data-setting="owner_address_chance"><output id="owner-chance-label">30%</output></div></div>
+              </div>
+
+              <section class="persona-section persona-card-section">
+                <div class="persona-section-heading"><div><h3>人格角色卡</h3><p>分区修改昔夕的身份、表达和边界，也可以查看完整原文</p></div><div class="persona-file-actions"><input id="persona-import-input" type="file" accept=".txt,.md,.json,text/plain,application/json" hidden><button class="secondary-button" id="import-persona" type="button"><i data-lucide="upload"></i><span>导入</span></button><button class="secondary-button" id="export-persona" type="button"><i data-lucide="download"></i><span>导出</span></button></div></div>
+                <div class="persona-editor-toolbar">
+                  <div class="persona-editor-tabs" role="tablist" aria-label="人格编辑范围">
+                        <button class="active" type="button" role="tab" aria-selected="true" data-persona-tab="identity"><i data-lucide="heart-handshake"></i><span>身份与关系</span></button>
+                    <button type="button" role="tab" aria-selected="false" data-persona-tab="expression"><i data-lucide="message-circle-heart"></i><span>表达方式</span></button>
+                    <button type="button" role="tab" aria-selected="false" data-persona-tab="boundaries"><i data-lucide="shield-check"></i><span>行为边界</span></button>
+                        <button type="button" role="tab" aria-selected="false" data-persona-tab="raw"><i data-lucide="id-card"></i><span>完整角色卡</span></button>
+                  </div>
+                </div>
+                <div class="persona-structured-editor" id="persona-structured-editor"></div>
+                <div class="persona-editor-pane persona-raw-pane" data-persona-pane="raw" hidden>
+                  <div class="persona-raw-heading"><div><strong>完整人格文本</strong><span>适合精确调整高级规则，切换回分区编辑时会重新解析</span></div><span id="persona-character-count">0 字</span></div>
+                  <textarea class="persona-raw-editor" id="persona-editor" spellcheck="false"></textarea>
+                </div>
+                <p class="persona-editor-note"><i data-lucide="info"></i><span>导入只会载入草稿；点击保存后才会替换昔夕正在使用的人格角色卡。</span></p>
+              </section>
+
+              <div class="settings-save-float"><button class="primary-button" id="save-persona" type="button"><i data-lucide="save"></i><span>保存人格设置</span></button></div>
+            </div>
+
+            <div class="tuning-panel with-floating-save" id="tuning-conversation">
+              <div class="settings-panel-heading"><div class="settings-heading-content"><span class="settings-heading-icon"><i data-lucide="messages-square"></i></span><div><h2>对话与记忆</h2><p>控制昔夕如何使用上下文、长期记忆和主动性</p></div></div></div>
+              <div class="settings-group action-settings-group"><h3>记忆入口</h3>
+                  <button class="setting-action" type="button" data-view-target="memory"><span class="setting-action-icon"><i data-lucide="brain"></i></span><span><strong>查看长期记忆</strong><small>浏览、搜索和修正昔夕已经记住的内容</small></span><i data-lucide="chevron-right"></i></button>
+                <button class="setting-action" type="button" data-view-target="growth"><span class="setting-action-icon"><i data-lucide="sprout"></i></span><span><strong>查看成长档案</strong><small>调整兴趣偏好和昔夕正在形成的理由</small></span><i data-lucide="chevron-right"></i></button>
+              </div>
+              <div class="settings-group"><h3>主动联系</h3>
+                <div class="setting-row"><div><strong>主动私聊</strong><span id="autonomous-private-copy">在合适的随机时间主动找主人聊天</span></div><label class="switch"><input type="checkbox" data-setting="autonomous_private_enabled"><span></span></label></div>
+                <div class="setting-row interval-row"><div><strong>主动私聊间隔</strong><span>在最短与最长时间之间随机选择</span></div><div class="range-pair"><label><input class="number-input" type="number" min="0.05" max="48" step="0.05" data-setting="autonomous_private_min_interval_hours"><small>最短/小时</small></label><span>至</span><label><input class="number-input" type="number" min="0.05" max="72" step="0.05" data-setting="autonomous_private_max_interval_hours"><small>最长/小时</small></label></div></div>
+              </div>
+              <div class="settings-group"><h3>群聊参与</h3>
+                <div class="setting-row"><div><strong>自主参与群聊</strong><span>只在话题相关或提到昔夕时自然加入</span></div><label class="switch"><input type="checkbox" data-setting="autonomous_group_enabled"><span></span></label></div>
+              </div>
+              <div class="settings-save-float"><button class="primary-button save-settings-panel" data-panel="conversation"><i data-lucide="save"></i><span>保存对话设置</span></button></div>
+            </div>
+
+            <div class="tuning-panel with-floating-save" id="tuning-learning">
+              <div class="settings-panel-heading"><div class="settings-heading-content"><span class="settings-heading-icon"><i data-lucide="book-open-check"></i></span><div><h2>成长</h2><p>安排兴趣知识、学习节奏和昔夕的持续成长</p></div></div></div>
+              <div class="settings-group"><h3>学习能力</h3>
+                <div class="setting-row"><div><strong>持续学习</strong><span>定期读取可信知识来源</span></div><label class="switch"><input type="checkbox" data-setting="learning_enabled"><span></span></label></div>
+                <div class="setting-row"><div><strong>动漫优先学习</strong><span>优先更新动画、游戏与二次元兴趣资料</span></div><label class="switch"><input type="checkbox" data-setting="anime_learning_enabled"><span></span></label></div>
+              </div>
+              <div class="settings-group"><h3>学习频率</h3>
+                <div class="setting-row"><div><strong>兴趣学习间隔</strong><span>小时，昔夕喜欢的内容使用更高频率</span></div><input class="number-input" type="number" min="0.25" max="168" step="0.25" data-setting="learning_interest_interval_hours"></div>
+                <div class="setting-row"><div><strong>通用学习间隔</strong><span>小时，日常知识与热点资料</span></div><input class="number-input" type="number" min="0.25" max="336" step="0.25" data-setting="learning_general_interval_hours"></div>
+                <div class="setting-row"><div><strong>学术学习间隔</strong><span>小时，降低低兴趣学术内容的学习频率</span></div><input class="number-input" type="number" min="0.25" max="720" step="0.25" data-setting="learning_academic_interval_hours"></div>
+              </div>
+              <div class="settings-save-float"><button class="primary-button save-settings-panel" data-panel="learning"><i data-lucide="save"></i><span>保存学习设置</span></button></div>
+            </div>
+
+            <div class="tuning-panel" id="tuning-model">
+              <div class="settings-panel-heading"><div class="settings-heading-content"><span class="settings-heading-icon"><i data-lucide="cpu"></i></span><div><h2>模型与 API</h2><p>语言推理、联网搜索与图片理解</p></div></div></div>
+              <div class="active-model-band"><span class="status-dot" id="active-model-dot"></span><div class="active-model-connections"><div><span>语言模型</span><strong id="active-model-name">正在读取</strong><small id="active-model-provider">连接状态同步中</small></div><div><span>视觉模型</span><strong id="active-vision-model-name">正在读取</strong><small id="active-vision-model-provider">连接状态同步中</small></div></div></div>
+              <div class="settings-group model-provider-group">
+                <div class="model-provider-heading"><div><h3>供应商</h3><p>管理不同服务商、模型和各自的接口密钥</p></div><button class="secondary-button" id="add-model-provider" type="button"><i data-lucide="plus"></i><span>新增供应商</span></button></div>
+                <div class="model-provider-list" id="model-provider-list"><span class="table-empty compact-empty">正在读取供应商</span></div>
+              </div>
+              <div class="settings-group"><h3>感知能力</h3>
+                <div class="setting-row"><div><strong>联网搜索</strong><span>问题涉及新信息或外部事实时搜索网络</span></div><label class="switch"><input type="checkbox" data-setting="web_search_enabled"><span></span></label></div>
+              </div>
+              <div class="settings-group model-usage-group"><h3>近 30 天模型用量</h3><div class="model-usage-summary" id="model-usage-summary"></div><div class="model-usage-list" id="model-usage-list"></div></div>
+              <div class="settings-group fallback-model-group"><h3>备用模型与自动降级</h3>
+                <form class="fallback-model-form" id="fallback-model-form">
+                  <label><span>显示名称</span><input id="fallback-model-name" class="model-input" type="text" maxlength="80" placeholder="例如：本地备用语言模型"></label>
+                  <label><span>能力</span><select id="fallback-model-capability" class="model-input"><option value="language">语言模型</option><option value="vision">视觉模型</option></select></label>
+                  <label class="wide"><span>API 地址</span><input id="fallback-model-base-url" class="model-input" type="url" placeholder="http://127.0.0.1:11434/v1"></label>
+                  <label><span>模型名称</span><input id="fallback-model-id" class="model-input" type="text" maxlength="200"></label>
+                  <label><span>优先级</span><input id="fallback-model-priority" class="number-input" type="number" min="1" max="999" value="100"></label>
+                  <label class="wide fallback-key-field"><span>独立 API 密钥</span><div class="secret-input-wrap"><input id="fallback-model-api-key" class="model-input" type="password" autocomplete="new-password" placeholder="留空并使用主模型密钥"><button class="icon-button secret-toggle" data-secret-target="fallback-model-api-key" type="button" title="显示备用模型密钥" aria-label="显示备用模型密钥"><i data-lucide="eye"></i></button></div></label>
+                  <label class="fallback-primary-key"><input id="fallback-use-primary-key" type="checkbox" checked><span>使用对应主模型的密钥</span></label>
+                  <button class="secondary-button" id="add-fallback-model" type="submit"><i data-lucide="scan-search"></i><span>检测并添加</span></button>
+                </form>
+                <div class="fallback-model-list" id="fallback-model-list"></div>
+              </div>
+            </div>
+
+            <div class="tuning-panel with-floating-save" id="tuning-game">
+              <div class="settings-panel-heading"><div class="settings-heading-content"><span class="settings-heading-icon"><i data-lucide="gamepad-2"></i></span><div><h2>游戏陪伴</h2><p>共享整个屏幕让昔夕观看你的游戏，并在聊天或通话中提供情绪陪伴</p></div></div></div>
+              <div class="settings-group"><h3>观察设置</h3>
+              <div class="setting-row"><div><strong>工作方式</strong><span>昔夕在本地持续检测画面变化，只有出现事件或达到最长等待时间才调用视觉模型；不会操作键盘或鼠标。</span></div><span class="status-pill" data-state="online">事件驱动</span></div>
+                <div class="setting-row"><div><strong>最长观察间隔</strong><span>没有明显事件时，超过这个时间仍会复查一次最新画面</span></div><div class="game-settings-interval"><input id="settings-game-interval" type="range" min="4" max="30" step="1" value="9" aria-label="游戏最长观察间隔"><output id="settings-game-interval-value">9 秒</output></div></div>
+                <div class="setting-row"><div><strong>画面变化灵敏度</strong><span>变化低于此比例时跳过视觉模型，减少延迟和用量</span></div><div class="game-settings-interval"><input id="settings-game-change-threshold" type="range" min="0.5" max="25" step="0.5" value="2.5" aria-label="画面变化灵敏度"><output id="settings-game-change-value">2.5%</output></div></div>
+                <div class="setting-row"><div><strong>强制复查周期</strong><span>画面持续静止若干轮后仍进行一次完整分析</span></div><div class="game-settings-interval"><input id="settings-game-idle-cycles" type="range" min="1" max="20" step="1" value="4" aria-label="强制复查周期"><output id="settings-game-idle-value">4 轮</output></div></div>
+                <div class="setting-row"><div><strong>主动陪玩</strong><span>昔夕会根据局面自然提醒、吐槽和接话，不占用主聊天历史</span></div><label class="switch"><input id="settings-game-companion" type="checkbox" checked><span></span></label></div>
+                <div class="setting-row"><div><strong>开始时自动通话</strong><span>游戏会话开始后自动进入最小化语音通话，结束游戏时同步挂断</span></div><label class="switch"><input id="settings-game-auto-call" type="checkbox" checked><span></span></label></div>
+              </div>
+              <div class="settings-group action-settings-group"><h3>游戏陪伴</h3><button class="setting-action" type="button" data-view-target="game"><span class="setting-action-icon"><i data-lucide="monitor-play"></i></span><span><strong>进入游戏陪伴</strong><small>共享整个屏幕、查看画面并开始观察</small></span><i data-lucide="chevron-right"></i></button></div>
+              <div class="settings-save-float"><button class="primary-button" id="save-game-preferences"><i data-lucide="save"></i><span>保存游戏设置</span></button></div>
+            </div>
+
+            <div class="tuning-panel with-floating-save" id="tuning-qq">
+              <div class="settings-panel-heading qq-settings-heading"><div class="settings-heading-content"><span class="settings-heading-icon"><i data-lucide="radio"></i></span><div><h2>QQ</h2><p>登录、NapCat、OneBot 与群聊</p></div></div></div>
+
+              <section class="qq-setup-section" id="qq-install-guide" aria-labelledby="qq-install-title" data-stage="checking">
+                <div class="qq-section-heading qq-setup-heading"><div><span class="qq-setup-eyebrow">首次登录向导</span><h3 id="qq-install-title">让昔夕登录 QQ</h3><p id="qq-install-copy">应用会检查环境并告诉你下一步，不需要了解 QQ 接口的技术细节。</p></div><span class="qq-overall-status" id="qq-guide-status" data-state="working">正在检查</span></div>
+                <ol class="qq-setup-steps" id="qq-setup-steps">
+                  <li data-qq-step="install" data-state="current"><span class="qq-step-index">1</span><div><strong>准备组件</strong><small>自动检查并安装 QQ 登录组件</small></div></li>
+                  <li data-qq-step="identity" data-state="pending"><span class="qq-step-index">2</span><div><strong>填写账号</strong><small>填写助手 QQ 和主人 QQ</small></div></li>
+                  <li data-qq-step="login" data-state="pending"><span class="qq-step-index">3</span><div><strong>手机扫码</strong><small>使用手机 QQ 扫描登录二维码</small></div></li>
+                  <li data-qq-step="connect" data-state="pending"><span class="qq-step-index">4</span><div><strong>自动上线</strong><small>扫码后自动连接消息通道</small></div></li>
+                </ol>
+                <div class="qq-guide-action">
+                  <div><strong id="qq-guide-next-title">正在检查 QQ 登录环境</strong><span id="qq-guide-next-copy">检查完成后，这里会显示当前需要完成的操作。</span></div>
+                  <button class="primary-button" id="qq-guide-primary" type="button" disabled><i data-lucide="loader-circle"></i><span>正在检查</span></button>
+                </div>
+                <div class="qq-guide-tools"><button class="text-button" id="open-qq-install-guide" type="button"><i data-lucide="wrench"></i><span>打开环境配置</span></button></div>
+              </section>
+
+              <section class="qq-connection-section" aria-labelledby="qq-connection-title">
+                <div class="qq-section-heading"><div><h3 id="qq-connection-title">连接状态</h3><p id="qq-connection-copy">正在读取 QQ、NapCat 与 OneBot 状态</p></div><span class="qq-overall-status" id="qq-settings-overall-status" data-state="offline">已下线</span></div>
+                <div class="qq-connection-grid">
+                  <article class="qq-status-card" data-qq-component="process"><div><i data-lucide="monitor-dot"></i><span>QQ 进程</span></div><strong id="qq-process-status">未运行</strong><small id="qq-process-detail">等待 QQ 进程启动</small></article>
+                  <article class="qq-status-card" data-qq-component="login"><div><i data-lucide="user-round-check"></i><span>QQ 登录</span></div><strong id="qq-login-status">未登录</strong><small id="qq-login-detail">等待账号登录</small></article>
+                  <article class="qq-status-card" data-qq-component="napcat"><div><i data-lucide="plug-zap"></i><span>NapCat</span></div><strong id="qq-napcat-status">离线</strong><small id="qq-napcat-detail">插件通道未启动</small></article>
+                  <article class="qq-status-card" data-qq-component="onebot"><div><i data-lucide="radio-tower"></i><span>OneBot</span></div><strong id="qq-onebot-status">未连接</strong><small id="qq-onebot-detail">等待消息通道连接</small></article>
+                </div>
+                  <div class="qq-control-toolbar"><button class="secondary-button" id="qq-login-qr" type="button"><i data-lucide="qr-code"></i><span>查看登录二维码</span></button><button class="primary-button" id="qq-start-channel" type="button"><i data-lucide="plug-zap"></i><span>连接消息通道</span></button><button class="secondary-button" id="qq-stop-channel" type="button"><i data-lucide="square"></i><span>停止连接</span></button><button class="secondary-button" id="qq-restart-channel" type="button"><i data-lucide="refresh-cw"></i><span>重新连接</span></button></div>
+                <p class="qq-connection-note" id="qq-connection-note">上方首次登录向导会完成常用流程；这里用于查看状态或手动重新连接。</p>
+              </section>
+
+              <div class="settings-group qq-identity-group"><h3>QQ 身份</h3>
+                <div class="setting-row"><div><strong>昔夕登录 QQ</strong><span>NapCat 实际登录并收发消息的机器人账号</span></div><input class="qq-id-input" id="bot-qq-id" type="text" inputmode="numeric" autocomplete="off" maxlength="12" aria-label="昔夕登录 QQ"></div>
+                <div class="setting-row"><div><strong>主人 QQ</strong><span>拥有主人权限、接收主动私聊与专属称呼的账号</span></div><input class="qq-id-input" id="owner-qq-id" type="text" inputmode="numeric" autocomplete="off" maxlength="12" aria-label="主人 QQ"></div>
+                <div class="setting-row qq-actual-row"><div><strong>NapCat 当前账号</strong><span id="qq-actual-account">未登录</span></div><span class="status-pill" id="qq-account-match" data-state="offline">未连接</span></div>
+                <div class="qq-identity-actions">
+                  <button class="secondary-button" id="save-qq-identity"><i data-lucide="save"></i><span>保存身份配置</span></button>
+                  <button class="primary-button" id="switch-qq-account"><i data-lucide="log-in"></i><span>切换账号并登录</span></button>
+                </div>
+                <p class="qq-identity-note" id="qq-identity-note">换号会结束当前昔夕专用 QQ 进程并等待新账号登录，不会关闭普通 QQ 客户端。</p>
+              </div>
+              <div class="settings-group qq-wake-group"><h3>群聊唤醒</h3>
+                <div class="setting-row"><div><strong>@ 唤醒</strong><span>群成员 @ 昔夕时立即回应</span></div><label class="switch"><input type="checkbox" data-setting="qq_group_at_wake_enabled"><span></span></label></div>
+                <div class="setting-row"><div><strong>名称唤醒</strong><span>消息以设定名称称呼昔夕时回应</span></div><label class="switch"><input type="checkbox" data-setting="qq_group_name_wake_enabled"><span></span></label></div>
+                <div class="setting-row"><div><strong>唤醒名称</strong><span>可填写多个名称，用逗号、顿号或换行分隔</span></div><input class="model-input" type="text" maxlength="260" spellcheck="false" autocomplete="off" placeholder="昔夕、小夕、xx" aria-label="群聊唤醒名称" data-setting="qq_group_wake_names"></div>
+              </div>
+              <div class="settings-group"><h3>天气与提醒</h3>
+                <div class="setting-row"><div><strong>天气信息</strong><span>让昔夕随时知道当前城市的天气</span></div><label class="switch"><input type="checkbox" data-setting="weather_enabled"><span></span></label></div>
+                <div class="setting-row"><div><strong>极端天气提醒</strong><span>检测到风险天气时通知私聊与群成员</span></div><label class="switch"><input type="checkbox" data-setting="weather_alert_enabled"><span></span></label></div>
+                <div class="setting-row"><div><strong>天气城市</strong><span>可直接输入，也可以从常用城市中选择</span></div><div class="weather-city-control"><input class="short-input" id="weather-city-setting" type="text" maxlength="40" autocomplete="address-level2" placeholder="输入城市名称" aria-label="天气城市" data-setting="weather_location"><select id="weather-city-preset" class="weather-city-preset" aria-label="选择常用天气城市"><option value="">常用城市</option><optgroup label="直辖市"><option value="北京">北京</option><option value="上海">上海</option><option value="天津">天津</option><option value="重庆">重庆</option></optgroup><optgroup label="华北与东北"><option value="石家庄">石家庄</option><option value="太原">太原</option><option value="呼和浩特">呼和浩特</option><option value="沈阳">沈阳</option><option value="大连">大连</option><option value="长春">长春</option><option value="哈尔滨">哈尔滨</option></optgroup><optgroup label="华东"><option value="南京">南京</option><option value="苏州">苏州</option><option value="杭州">杭州</option><option value="宁波">宁波</option><option value="合肥">合肥</option><option value="福州">福州</option><option value="厦门">厦门</option><option value="南昌">南昌</option><option value="济南">济南</option><option value="青岛">青岛</option></optgroup><optgroup label="华中与华南"><option value="郑州">郑州</option><option value="武汉">武汉</option><option value="长沙">长沙</option><option value="广州">广州</option><option value="深圳">深圳</option><option value="南宁">南宁</option><option value="海口">海口</option></optgroup><optgroup label="西南与西北"><option value="成都">成都</option><option value="贵阳">贵阳</option><option value="昆明">昆明</option><option value="拉萨">拉萨</option><option value="西安">西安</option><option value="兰州">兰州</option><option value="西宁">西宁</option><option value="银川">银川</option><option value="乌鲁木齐">乌鲁木齐</option></optgroup><optgroup label="港澳台"><option value="香港">香港</option><option value="澳门">澳门</option><option value="台北">台北</option></optgroup></select></div></div>
+              </div>
+              <div class="settings-save-float"><button class="primary-button save-settings-panel" data-panel="qq"><i data-lucide="save"></i><span>保存 QQ 设置</span></button></div>
+            </div>
+
+            <div class="tuning-panel with-floating-save active" id="tuning-desktop">
+              <div class="settings-panel-heading"><div class="settings-heading-content"><span class="settings-heading-icon"><i data-lucide="settings-2"></i></span><div><h2>基础与启动</h2><p>管理核心能力、启动页面和桌面运行方式</p></div></div></div>
+              <div class="settings-group"><h3>核心能力</h3><div class="startup-service-list" id="startup-service-list"><span class="table-empty compact-empty">正在读取服务状态</span></div></div>
+              <div class="settings-group"><h3>启动偏好</h3>
+                <div class="setting-row"><div><strong>默认打开页面</strong><span>下次启动昔夕应用时首先进入的页面</span></div><select class="model-input" data-local-setting="default_view"><option value="home">首页</option><option value="chat">对话</option><option value="memory">记忆</option><option value="growth">成长</option><option value="game">游戏</option><option value="system">系统</option><option value="tuning">设置</option></select></div>
+                <div class="setting-row"><div><strong>启动时展开状态中心</strong><span>启动应用后在右侧显示昔夕的实时状态</span></div><label class="switch"><input type="checkbox" data-local-setting="inspector_open"><span></span></label></div>
+                <div class="setting-row"><div><strong>状态刷新频率</strong><span>刷新 QQ、模型、语音、学习与天气状态</span></div><select class="short-input" data-local-setting="status_refresh_seconds"><option value="10">10 秒</option><option value="20">20 秒</option><option value="30">30 秒</option><option value="60">60 秒</option></select></div>
+              </div>
+              <div class="settings-group microphone-permission-group"><h3>设备权限</h3>
+                <div class="setting-row microphone-permission-row"><div><strong>麦克风访问</strong><span id="microphone-permission-copy">正在读取麦克风权限</span></div><div class="microphone-permission-control"><span class="status-pill" id="microphone-permission-status" data-state="working">正在检查</span><label class="switch"><input id="microphone-permission-toggle" type="checkbox" aria-label="允许昔夕使用麦克风"><span></span></label></div></div>
+                <div class="setting-row microphone-permission-actions-row"><div><strong>权限检查</strong><span>拒绝过授权时可在这里恢复，无需重新安装应用</span></div><div class="microphone-permission-actions"><button class="secondary-button" id="open-microphone-settings" type="button"><i data-lucide="settings"></i><span>Windows 设置</span></button><button class="secondary-button" id="request-microphone-permission" type="button"><i data-lucide="mic"></i><span>检测麦克风</span></button></div></div>
+              </div>
+              <div class="settings-group"><h3>桌面行为</h3>
+                <div class="setting-row"><div><strong>开机启动</strong><span>登录 Windows 后自动启动昔夕控制中心</span></div><label class="switch"><input type="checkbox" data-desktop-setting="start_with_windows"><span></span></label></div>
+                <div class="setting-row"><div><strong>记住窗口位置</strong><span>下次恢复当前窗口大小和屏幕位置</span></div><label class="switch"><input type="checkbox" data-desktop-setting="remember_window"><span></span></label></div>
+              </div>
+              <div class="settings-save-float"><button class="primary-button" id="save-desktop"><i data-lucide="save"></i><span>保存启动设置</span></button></div>
+            </div>
+
+            <div class="tuning-panel" id="tuning-data">
+              <div class="settings-panel-heading"><div class="settings-heading-content"><span class="settings-heading-icon"><i data-lucide="database"></i></span><div><h2>本地数据</h2><p>备份配置、人格、兴趣和记忆</p></div></div></div>
+              <div class="settings-group"><h3>本地备份</h3>
+                <div class="setting-row"><div><strong>配置与记忆备份</strong><span>包含人格、设置、兴趣和记忆数据库，不包含 API 密钥</span></div><div class="backup-actions"><input id="backup-import-input" type="file" accept=".zip,application/zip" hidden><button class="secondary-button" id="import-backup"><i data-lucide="upload"></i><span>导入备份</span></button><button class="secondary-button" id="create-backup"><i data-lucide="database-backup"></i><span>立即备份</span></button></div></div>
+                <div class="backup-list" id="backup-list"><span class="table-empty compact-empty">正在读取备份</span></div>
+              </div>
+            </div>
+
+            <div class="tuning-panel" id="tuning-environment">
+              <div class="settings-panel-heading"><div class="settings-heading-content environment-heading-content"><span class="settings-heading-icon"><i data-lucide="package-check"></i></span><div><h2>环境配置</h2><p>检查本机组件，并在当前环境中完成安装</p></div><button class="secondary-button" id="refresh-environment" type="button"><i data-lucide="refresh-cw"></i><span>重新检查</span></button></div></div>
+
+              <section class="environment-overview" aria-labelledby="environment-center-title">
+                <div class="environment-overview-copy"><span class="environment-overview-icon"><i data-lucide="wrench"></i></span><div><h3 id="environment-center-title">环境配置中心</h3><p>只安装昔夕真正需要的组件；模型和账号会带你到对应设置。</p></div></div>
+                <div class="environment-overview-actions">
+                  <div class="environment-overview-status"><strong id="environment-ready-count">正在检查</strong><span id="environment-updated">读取本机环境</span></div>
+                  <div class="environment-install-picker">
+                    <button class="secondary-button environment-install-menu-toggle" id="environment-install-menu-toggle" type="button" aria-expanded="false" aria-controls="environment-install-menu"><i data-lucide="list-checks"></i><span>选择安装项</span><i data-lucide="chevron-down"></i></button>
+                    <div class="environment-install-menu" id="environment-install-menu" hidden>
+                      <div class="environment-install-menu-heading"><div><strong>可安装组件</strong><span>可多选，最多同时处理 3 项</span></div><button class="icon-button" id="environment-install-menu-close" type="button" title="收起" aria-label="收起安装项"><i data-lucide="x"></i></button></div>
+                      <div class="environment-install-options" id="environment-install-options"></div>
+                    </div>
+                    <button class="primary-button" id="install-missing-environment" type="button" disabled><i data-lucide="package-plus"></i><span>安装所选</span></button>
+                  </div>
+                </div>
+                <p class="environment-python" id="environment-python">Python 环境正在读取</p>
+              </section>
+
+              <div class="environment-list" id="environment-list" aria-live="polite"><div class="environment-loading"><i data-lucide="loader-circle"></i><span>正在检查环境</span></div></div>
+              <p class="environment-footnote">下载任务最多同时运行 3 项；模型默认通过魔搭 ModelScope 的后台命令行下载，缺失文件按需补齐，并保留断点续传与本地缓存。</p>
+            </div>
+
+            <div class="tuning-panel" id="tuning-advanced">
+              <div class="settings-panel-heading"><div class="settings-heading-content advanced-heading-content"><span class="settings-heading-icon"><i data-lucide="wrench"></i></span><div><h2>高级设置</h2><p>查看昔夕的构建、运行状态与本地文件位置</p></div><button class="secondary-button" id="refresh-advanced" type="button"><i data-lucide="refresh-cw"></i><span>刷新</span></button></div></div>
+
+              <section class="settings-group advanced-settings-group">
+                <header class="advanced-section-heading"><div><h3>构建与运行身份</h3><p id="advanced-build-time">正在读取当前构建</p></div></header>
+                <div class="advanced-row-list" id="advanced-identity-list"><span class="advanced-loading">正在读取构建信息</span></div>
+              </section>
+
+              <section class="settings-group advanced-settings-group">
+                <header class="advanced-section-heading"><div><h3>窗口拓扑</h3><p>确认桌面窗口和后台服务是否重复创建</p></div><span class="advanced-summary" id="advanced-window-summary">正在检测</span></header>
+                <div class="advanced-row-list" id="advanced-window-list"><span class="advanced-loading">正在检测窗口</span></div>
+              </section>
+
+              <section class="settings-group advanced-settings-group">
+                <header class="advanced-section-heading"><div><h3>服务状态</h3><p>这里只显示实时结果；控制和修复仍在系统页完成</p></div><button class="text-command" type="button" data-view-target="system" data-system-tab-target="overview">打开系统诊断 <i data-lucide="arrow-right"></i></button></header>
+                <div class="advanced-row-list" id="advanced-service-list"><span class="advanced-loading">正在读取服务状态</span></div>
+              </section>
+
+              <section class="settings-group advanced-settings-group advanced-path-group">
+                <header class="advanced-section-heading"><div><h3>路径</h3><p>昔夕当前实际使用的本地文件与数据目录</p></div></header>
+                <div class="advanced-path-list" id="advanced-path-list"><span class="advanced-loading">正在读取路径</span></div>
+              </section>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <aside class="inspector" id="inspector" aria-label="状态中心" data-expanded="false">
+        <div class="inspector-rail" id="inspector-rail">
+          <button class="inspector-rail-button inspector-expand" id="expand-inspector" title="展开状态中心" aria-label="展开状态中心" aria-expanded="false"><i data-lucide="panel-right-open"></i></button>
+          <button class="inspector-rail-button mood" id="inspector-mood-button" title="查看当前心情" aria-label="查看当前心情"><i data-lucide="heart"></i><span class="rail-status-dot" id="rail-mood-dot"></span></button>
+          <button class="inspector-rail-button rail-service" data-rail-service="qq" type="button" title="切换 QQ" aria-label="切换 QQ" aria-pressed="false"><i data-lucide="message-circle"></i></button>
+          <button class="inspector-rail-button rail-service" data-rail-service="model" type="button" title="切换大脑" aria-label="切换大脑" aria-pressed="false"><i data-lucide="brain-circuit"></i></button>
+          <button class="inspector-rail-button rail-service" data-rail-service="vision" type="button" title="切换图片理解" aria-label="切换图片理解" aria-pressed="false"><i data-lucide="scan-eye"></i></button>
+          <button class="inspector-rail-button rail-service" data-rail-service="voice" type="button" title="切换语音" aria-label="切换语音" aria-pressed="false"><i data-lucide="audio-waveform"></i></button>
+          <button class="inspector-rail-button rail-service" data-rail-service="learning" type="button" title="切换持续学习" aria-label="切换持续学习" aria-pressed="false"><i data-lucide="book-open-check"></i></button>
+          <button class="inspector-rail-button rail-service" data-rail-service="weather" type="button" title="切换天气提醒" aria-label="切换天气提醒" aria-pressed="false"><i data-lucide="bell-ring"></i></button>
+          <button class="inspector-rail-button inspector-system-nav" data-view="system" type="button" title="系统" aria-label="打开系统页面"><i data-lucide="activity"></i></button>
+        </div>
+        <div class="inspector-content" id="inspector-content" aria-hidden="true">
+          <div class="inspector-heading"><div><strong id="inspector-context-title">此刻的昔夕</strong><span id="inspector-context-subtitle">状态与关系</span></div><button class="icon-button" id="close-inspector" title="收起状态中心" aria-label="收起状态中心"><i data-lucide="panel-right-close"></i></button></div>
+
+          <section class="inspector-card mood-card inspector-context" data-context-for="home"><div class="inspector-card-head"><i data-lucide="heart"></i><span>现在的心情</span></div><strong id="inspector-mood-summary">正在读取</strong><p id="inspector-mood-cause">情绪状态载入中</p></section>
+          <section class="inspector-card relation-card inspector-context" data-context-for="home"><div class="inspector-card-head"><i data-lucide="sparkles"></i><span>关系</span></div><strong id="inspector-owner-relationship">主人 · 重要的人</strong><p>所有私聊与群聊记忆正在实时共享</p></section>
+
+          <section class="inspector-card inspector-context" data-context-for="chat"><div class="inspector-card-head"><i data-lucide="activity"></i><span>对话状态</span></div><strong id="inspector-chat-presence">空闲中</strong><p id="inspector-chat-operation">对话已同步</p></section>
+          <section class="inspector-card inspector-context" data-context-for="chat"><div class="inspector-card-head"><i data-lucide="corner-up-left"></i><span>当前引用</span></div><strong id="inspector-reply-title">没有引用消息</strong><p id="inspector-reply-copy">这次回复会直接接着当前对话</p><button class="context-text-action" id="inspector-clear-reply" type="button" hidden>取消引用</button></section>
+          <section class="inspector-card inspector-context" data-context-for="chat"><div class="inspector-card-head"><i data-lucide="brain"></i><span>相关记忆</span></div><div class="inspector-memory-list" id="inspector-chat-memories"><span>正在读取</span></div></section>
+
+          <section class="inspector-card inspector-context" data-context-for="memory"><div class="inspector-card-head"><i data-lucide="brain"></i><span>选中的记忆</span></div><strong id="inspector-memory-title">尚未选择</strong><p id="inspector-memory-copy">从列表中选择一条记忆</p><div class="context-meta" id="inspector-memory-meta"></div><button class="context-action" id="inspector-edit-memory" type="button" disabled><i data-lucide="pencil"></i><span>编辑记忆</span></button></section>
+
+          <section class="inspector-card inspector-context" data-context-for="growth"><div class="inspector-card-head"><i data-lucide="sprout"></i><span>兴趣概况</span></div><strong id="inspector-growth-title">正在读取</strong><p id="inspector-growth-copy">昔夕正在形成自己的偏好</p><div class="context-chip-list" id="inspector-growth-interests"></div></section>
+
+          <section class="inspector-card inspector-context" data-context-for="game"><div class="inspector-card-head"><i data-lucide="gamepad-2"></i><span>当前游戏</span></div><strong id="inspector-game-title">尚未开始</strong><p id="inspector-game-copy">整个屏幕已准备观察</p><div class="context-meta" id="inspector-game-meta"></div></section>
+
+          <section class="inspector-card inspector-context" id="inspector-connection-card" data-context-for="home system"><div class="inspector-card-head"><i data-lucide="radio"></i><span>实时连接</span></div><div class="compact-status" id="inspector-status-list"></div></section>
+          <section class="inspector-alert inspector-context" id="inspector-alert" data-context-for="home system" hidden><i data-lucide="triangle-alert"></i><div><strong id="inspector-alert-title">需要留意</strong><span id="inspector-alert-copy"></span></div></section>
+
+          <section class="inspector-card inspector-context" data-context-for="tuning"><div class="inspector-card-head"><i data-lucide="settings-2"></i><span>当前分类</span></div><strong id="inspector-settings-title">外观与界面</strong><p id="inspector-settings-copy">主题、布局和状态更新方式</p></section>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+
+  <div class="voice-call-layer" id="voice-call-layer" role="dialog" aria-modal="true" aria-labelledby="voice-call-name" hidden>
+    <section class="voice-call-panel" id="voice-call-panel" data-phase="connecting">
+      <div class="voice-call-background" aria-hidden="true"></div>
+      <header class="voice-call-header">
+        <span id="voice-call-status" aria-live="polite">正在连接昔夕…</span>
+        <div>
+          <button class="voice-call-window-button" id="minimize-voice-call" type="button" title="最小化通话" aria-label="最小化通话"><i data-lucide="minus"></i></button>
+          <button class="voice-call-window-button" id="close-voice-call" type="button" title="结束通话" aria-label="结束通话"><i data-lucide="phone-off"></i></button>
+        </div>
+      </header>
+      <div class="voice-call-person">
+        <div class="voice-call-avatar-wrap"><span class="voice-call-level" aria-hidden="true"></span><img data-xixi-avatar src="/assets/xixi-avatar-v3.png" alt="昔夕"></div>
+        <strong id="voice-call-name">昔夕</strong>
+        <time id="voice-call-duration" datetime="PT0S">00:00</time>
+        <p id="voice-call-caption" aria-live="polite">正在接通</p>
+      </div>
+      <div class="voice-call-controls">
+        <button class="voice-call-control" id="toggle-call-microphone" type="button" aria-label="关闭麦克风" aria-pressed="false"><span><i data-lucide="mic"></i></span><small>麦克风</small></button>
+        <button class="voice-call-control" id="toggle-call-speaker" type="button" aria-label="关闭扬声器" aria-pressed="false"><span><i data-lucide="volume-2"></i></span><small>扬声器</small></button>
+        <button class="voice-call-control danger" id="end-voice-call" type="button" aria-label="挂断"><span><i data-lucide="phone-off"></i></span><small>挂断</small></button>
+      </div>
+      <audio id="voice-call-audio" preload="auto" playsinline></audio>
+    </section>
+    <section class="voice-call-dock" id="voice-call-dock" aria-label="进行中的语音通话">
+      <header class="voice-call-dock-header">
+        <button id="restore-voice-call" type="button" title="拖动小窗，点击返回通话" aria-label="拖动通话小窗，点击返回通话窗口"><img data-xixi-avatar src="/assets/xixi-avatar-v3.png" alt=""><span><strong>昔夕</strong><small id="voice-call-dock-status">通话中 · 00:00</small></span></button>
+        <button id="end-voice-call-dock" type="button" title="挂断" aria-label="挂断"><i data-lucide="phone-off"></i></button>
+      </header>
+      <div class="voice-call-dock-transcript" id="voice-call-dock-transcript" aria-live="polite">
+        <p class="voice-call-dock-empty">等待你开口</p>
+      </div>
+    </section>
+  </div>
+
+  <section class="notification-panel" id="notification-panel" aria-hidden="true" aria-label="通知中心">
+    <header><div><strong>通知中心</strong><span id="notification-summary">正在同步</span></div><div><button class="text-command" id="mark-notifications-read" type="button">全部已读</button><button class="icon-button" id="close-notifications" type="button" title="关闭通知" aria-label="关闭通知"><i data-lucide="x"></i></button></div></header>
+    <div class="notification-list" id="notification-list"></div>
+  </section>
+
+  <dialog class="command-dialog" id="command-dialog" aria-labelledby="command-title">
+    <div class="command-search"><i data-lucide="search"></i><input id="command-input" type="search" autocomplete="off" placeholder="前往页面或执行命令"><kbd>Esc</kbd></div>
+    <div class="command-heading"><strong id="command-title">快捷命令</strong><span>Enter 执行</span></div>
+    <div class="command-list" id="command-list" role="listbox"></div>
+  </dialog>
+
+  <dialog class="control-dialog" id="weather-city-dialog" aria-labelledby="weather-city-title">
+    <form id="weather-city-form">
+      <div class="dialog-heading"><span class="dialog-icon"><i data-lucide="map-pin"></i></span><div><h2 id="weather-city-title">更换天气城市</h2><p>天气数据和极端天气提醒会切换到新城市</p></div></div>
+      <label class="dialog-field" for="weather-city-input">城市</label>
+      <input id="weather-city-input" type="text" maxlength="40" autocomplete="address-level2" placeholder="例如：上海">
+      <div class="dialog-actions"><button class="secondary-button" id="weather-city-cancel" type="button">取消</button><button class="primary-button" id="weather-city-save" type="submit"><i data-lucide="map-pin-check"></i><span>应用城市</span></button></div>
+    </form>
+  </dialog>
+
+  <dialog class="control-dialog qq-qr-dialog" id="qq-qr-dialog" aria-labelledby="qq-qr-title">
+    <form method="dialog">
+      <div class="dialog-heading"><span class="dialog-icon"><i data-lucide="qr-code"></i></span><div><h2 id="qq-qr-title">扫码登录 QQ</h2><p>使用目标 QQ 的手机端扫描并确认登录</p></div></div>
+      <div class="qq-qr-stage"><div class="qq-qr-frame"><img id="qq-qr-image" alt="QQ 登录二维码" hidden><span id="qq-qr-placeholder"><i data-lucide="loader-circle"></i></span></div><strong id="qq-qr-status">正在启动 NapCat 并生成二维码</strong><small>二维码过期时会自动刷新，不需要重新安装组件。</small></div>
+      <div class="dialog-actions"><button class="secondary-button" id="qq-qr-close" type="button">稍后登录</button><button class="primary-button" id="qq-qr-refresh" type="button"><i data-lucide="refresh-cw"></i><span>刷新二维码</span></button></div>
+    </form>
+  </dialog>
+
+  <dialog class="control-dialog memory-dialog" id="memory-dialog" aria-labelledby="memory-dialog-title">
+    <form id="memory-form">
+      <div class="dialog-heading"><span class="dialog-icon"><i data-lucide="brain"></i></span><div><h2 id="memory-dialog-title">修改记忆</h2><p>修正内容、类别、可信度与重要程度</p></div></div>
+      <input id="memory-id" type="hidden">
+      <label class="dialog-field" for="memory-content">内容</label><textarea id="memory-content" rows="5" maxlength="1200"></textarea>
+      <div class="memory-dialog-grid"><label><span>类别</span><input id="memory-category" type="text" maxlength="60"></label><label><span>重要度</span><input id="memory-importance" type="number" min="1" max="10"></label><label><span>可信度</span><input id="memory-confidence" type="number" min="0" max="1" step="0.05"></label></div>
+      <div class="dialog-actions spread"><button class="danger-button" id="delete-memory" type="button"><i data-lucide="archive-x"></i><span>停用记忆</span></button><span></span><button class="secondary-button" id="memory-cancel" type="button">取消</button><button class="primary-button" type="submit"><i data-lucide="save"></i><span>保存修改</span></button></div>
+    </form>
+  </dialog>
+
+  <dialog class="control-dialog model-provider-dialog" id="model-provider-dialog" aria-labelledby="model-provider-dialog-title">
+    <form id="model-provider-form">
+      <div class="dialog-heading"><span class="dialog-icon"><i data-lucide="server-cog"></i></span><div><h2 id="model-provider-dialog-title">新增供应商</h2><p id="model-provider-dialog-copy">填写一次接口信息，之后可以在同一供应商下管理多个模型</p></div></div>
+      <input id="model-provider-id" type="hidden">
+      <div class="model-provider-form-grid">
+        <label class="dialog-field wide"><span>供应商名称</span><input id="model-provider-name" type="text" maxlength="80" placeholder="OpenAI 官方" required></label>
+        <label class="dialog-field wide"><span>API 地址</span><input id="model-provider-base-url" type="url" placeholder="https://example.com/v1" required></label>
+        <label class="dialog-field wide"><span>API Key</span><div class="secret-input-wrap"><input id="model-provider-api-key" type="password" autocomplete="new-password" placeholder="sk-..."><button class="icon-button secret-toggle" data-secret-target="model-provider-api-key" type="button" title="显示供应商密钥" aria-label="显示供应商密钥"><i data-lucide="eye"></i></button></div></label>
+        <div class="model-provider-compatibility wide"><span id="model-provider-compatibility-label">OpenAI 兼容 / New API 中转站</span><button class="secondary-button" id="fetch-model-provider-models" type="button"><i data-lucide="cloud-download"></i><span>获取模型列表</span></button></div>
+        <label class="dialog-field wide"><span>模型 ID</span><input id="model-provider-model-name" list="model-provider-model-options" type="text" maxlength="200" placeholder="不选择上方列表时，可在这里手动填写模型 ID" required><datalist id="model-provider-model-options"></datalist></label>
+        <div class="model-provider-model-options wide">
+          <label class="dialog-field"><span>显示名称</span><input id="model-provider-model-display-name" type="text" maxlength="100" placeholder="留空使用模型 ID"></label>
+          <label class="dialog-field"><span>模型用途</span><select id="model-provider-capabilities"><option value="language">语言模型</option><option value="vision">视觉模型</option><option value="both">语言 + 视觉</option></select></label>
+        </div>
+        <div class="model-provider-pricing wide">
+          <label class="dialog-field"><span>缓存价格（元/百万 Token）</span><input id="model-provider-cache-price" type="number" min="0" step="0.01" value="0"></label>
+          <label class="dialog-field"><span>输入价格（元/百万 Token）</span><input id="model-provider-input-price" type="number" min="0" step="0.01" value="0"></label>
+          <label class="dialog-field"><span>输出价格（元/百万 Token）</span><input id="model-provider-output-price" type="number" min="0" step="0.01" value="0"></label>
+        </div>
+        <p class="model-provider-key-note wide">API Key 只保存于本机凭据管理器，不会在页面中回显。</p>
+      </div>
+      <div class="dialog-actions"><button class="secondary-button" id="model-provider-cancel" type="button">取消</button><button class="primary-button" id="model-provider-save" type="submit"><i data-lucide="scan-search"></i><span>检测并保存</span></button></div>
+    </form>
+  </dialog>
+
+  <dialog class="control-dialog microphone-permission-dialog" id="microphone-permission-dialog" aria-labelledby="microphone-permission-title" aria-describedby="microphone-permission-message">
+    <form id="microphone-permission-form">
+      <div class="dialog-heading microphone-permission-heading"><span class="dialog-icon"><i data-lucide="mic"></i></span><div><span class="dialog-kicker" id="microphone-permission-kicker">设备权限</span><h2 id="microphone-permission-title">允许昔夕使用麦克风？</h2><p id="microphone-permission-message">麦克风只在你主动使用语音功能时开启。</p></div></div>
+      <div class="microphone-permission-summary"><span><i data-lucide="audio-lines"></i></span><div><strong>语音输入、语音通话与游戏陪伴</strong><p id="microphone-permission-detail">关闭通话或语音输入后，录音轨道会立即停止。</p></div></div>
+      <div class="microphone-permission-privacy"><i data-lucide="shield-check"></i><span>权限只作用于这台电脑，可随时在基础与启动设置中关闭。</span></div>
+      <div class="dialog-actions microphone-permission-dialog-actions"><button class="secondary-button" id="microphone-permission-system" type="button"><i data-lucide="settings"></i><span>Windows 设置</span></button><span></span><button class="secondary-button" id="microphone-permission-deny" type="button">暂不允许</button><button class="primary-button" id="microphone-permission-allow" type="button"><i data-lucide="mic"></i><span>允许麦克风</span></button></div>
+    </form>
+  </dialog>
+
+  <dialog class="control-dialog confirm-dialog" id="confirm-dialog" aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-message">
+    <form id="confirm-dialog-form">
+      <div class="confirm-dialog-heading">
+        <span class="confirm-dialog-icon" id="confirm-dialog-icon"><i data-lucide="triangle-alert"></i></span>
+        <div><span id="confirm-dialog-kicker">请确认操作</span><h2 id="confirm-dialog-title">继续当前操作？</h2></div>
+      </div>
+      <p class="confirm-dialog-message" id="confirm-dialog-message"></p>
+      <div class="confirm-dialog-detail" id="confirm-dialog-detail" hidden></div>
+      <div class="confirm-dialog-note"><i data-lucide="shield-check"></i><span id="confirm-dialog-note"></span></div>
+      <div class="dialog-actions confirm-dialog-actions"><button class="secondary-button" id="confirm-dialog-cancel" type="button">取消</button><button class="danger-button" id="confirm-dialog-accept" type="button"><i data-lucide="check"></i><span>确认</span></button></div>
+    </form>
+  </dialog>
+
+  <div class="toast-region" id="toast-region" aria-live="polite"></div>
+  <script src="/vendor/lucide.min.js"></script>
+  <script src="/app.js?v=20260827-microphone-permission"></script>
+</body>
+</html>

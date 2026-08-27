@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="/assets/xixi-icon-v3.png">
+  <meta name="color-scheme" content="light dark">
+  <title>昔夕配置中心</title>
+  <link rel="stylesheet" href="/styles.css?v=20260825-parallel-installer">
+</head>
+<body class="setup-page">
+  <section class="boot-error-screen" id="boot-error-screen" hidden aria-live="assertive">
+    <div class="boot-error-panel">
+      <span class="boot-error-icon"><i data-lucide="server-off"></i></span>
+      <div>
+        <span class="eyebrow">STARTUP CHECK</span>
+        <h1>暂时无法连接配置服务</h1>
+        <p id="boot-error-message">本地服务还没有准备好，请稍等片刻后重试。</p>
+      </div>
+      <button class="primary-button" id="retry-bootstrap" type="button"><i data-lucide="refresh-cw"></i><span>重新连接</span></button>
+    </div>
+  </section>
+
+  <main class="first-run-dialog" id="first-run-dialog" aria-labelledby="first-run-title">
+    <form id="first-run-form" autocomplete="off">
+      <div class="first-run-shell">
+        <aside class="first-run-sidebar">
+          <div class="first-run-brand">
+            <img src="/assets/xixi-avatar-v3.png" alt="昔夕">
+            <div><strong>昔夕</strong><span>首次配置中心</span></div>
+          </div>
+          <ol class="first-run-step-list" aria-label="配置步骤">
+            <li class="active" data-first-run-nav="1"><span><i data-lucide="cpu"></i></span><div><strong>检查电脑</strong><small>运行环境与组件</small></div></li>
+            <li data-first-run-nav="2"><span><i data-lucide="brain-circuit"></i></span><div><strong>语言模型</strong><small>连接昔夕的大脑</small></div></li>
+            <li data-first-run-nav="3"><span><i data-lucide="scan-eye"></i></span><div><strong>视觉模型</strong><small>单独配置图片理解</small></div></li>
+            <li data-first-run-nav="4"><span><i data-lucide="heart-handshake"></i></span><div><strong>关系资料</strong><small>称呼、关系与城市</small></div></li>
+            <li data-first-run-nav="5"><span><i data-lucide="sliders-horizontal"></i></span><div><strong>选择能力</strong><small>语音、学习与 QQ</small></div></li>
+            <li data-first-run-nav="6"><span><i data-lucide="badge-check"></i></span><div><strong>完成配置</strong><small>复核并进入昔夕</small></div></li>
+          </ol>
+          <div class="first-run-privacy"><i data-lucide="shield-check"></i><span>密钥和个人资料只保存在这台电脑上</span></div>
+        </aside>
+
+        <section class="first-run-main">
+          <header class="first-run-header">
+            <div class="first-run-heading">
+              <span class="first-run-heading-icon"><i id="first-run-step-icon" data-lucide="cpu"></i></span>
+              <div><h1 id="first-run-title">检查这台电脑</h1><p id="first-run-subtitle">先确认核心环境，再了解哪些扩展能力已经就绪</p></div>
+            </div>
+            <span class="first-run-count" id="first-run-count">1 / 6</span>
+          </header>
+          <div class="first-run-progress" aria-hidden="true"><i class="active"></i><i></i><i></i><i></i><i></i><i></i></div>
+
+          <div class="first-run-content">
+            <section class="first-run-page active" data-first-run-page="1">
+              <div class="first-run-section-heading"><div><span class="eyebrow">应用必需环境</span><h2>核心检查</h2></div><div class="first-run-environment-heading-actions"><button class="secondary-button" id="first-run-refresh-environment" type="button"><i data-lucide="refresh-cw"></i><span>重新检查</span></button><button class="primary-button" id="first-run-install-missing" type="button" disabled><i data-lucide="package-plus"></i><span>安装缺失项</span></button></div></div>
+              <div class="first-run-check-list" id="first-run-core-checks"></div>
+              <div class="first-run-section-heading compact"><div><span class="eyebrow">可选扩展</span><h2>能力准备情况</h2><p>这些能力都不会阻止进入应用，尚未启用的项目可以之后再配置。</p></div></div>
+              <div class="first-run-capability-list" id="first-run-environment-list"></div>
+            </section>
+
+            <section class="first-run-page" data-first-run-page="2">
+              <div class="first-run-section-heading"><div><span class="eyebrow">可选配置</span><h2>连接语言模型</h2><p>可以现在连接供应商，也可以进入应用后再配置。</p></div></div>
+              <div class="first-run-form-grid">
+                <label class="first-run-field wide"><span>供应商名称</span><input id="first-run-language-provider" type="text" maxlength="80" autocomplete="off" placeholder="例如：OpenAI、New API、本地 Ollama"></label>
+                <label class="first-run-field wide"><span>API 地址</span><input id="first-run-language-base-url" type="url" maxlength="300" autocomplete="off" placeholder="https://example.com/v1"></label>
+                <label class="first-run-field wide"><span>API 密钥</span><div class="secret-input-wrap"><input id="first-run-language-api-key" type="password" autocomplete="new-password" placeholder="本地无鉴权接口可以留空"><button class="icon-button secret-toggle" data-secret-target="first-run-language-api-key" type="button" title="显示密钥" aria-label="显示密钥"><i data-lucide="eye"></i></button></div></label>
+                <label class="first-run-field wide"><span>模型 ID</span><div class="first-run-model-row"><input id="first-run-language-model" list="first-run-language-model-options" type="text" maxlength="200" autocomplete="off" placeholder="例如：gpt-5、claude、gemini 或本地模型名"><button class="secondary-button" id="first-run-language-discover" type="button"><i data-lucide="cloud-download"></i><span>获取模型</span></button></div><datalist id="first-run-language-model-options"></datalist></label>
+              </div>
+              <div class="first-run-test-row"><div class="first-run-test-status" id="first-run-language-status" data-state="idle"><i data-lucide="circle-dashed"></i><span><strong>等待检测</strong><small>也可以选择稍后配置</small></span></div><div class="first-run-test-actions"><button class="secondary-button" id="first-run-language-skip" type="button"><i data-lucide="clock-3"></i><span>稍后配置</span></button><button class="primary-button" id="first-run-language-test" type="button"><i data-lucide="scan-search"></i><span>检测连接</span></button></div></div>
+            </section>
+
+            <section class="first-run-page" data-first-run-page="3">
+              <div class="first-run-section-heading"><div><span class="eyebrow">独立配置</span><h2>图片与屏幕理解</h2><p>视觉模型可以使用另一个供应商；不需要图片理解时也可以先关闭。</p></div><label class="switch first-run-heading-switch"><input id="first-run-vision-enabled" type="checkbox" checked><span></span></label></div>
+              <div id="first-run-vision-fields">
+                <div class="first-run-mode-control" role="radiogroup" aria-label="视觉接口来源">
+                  <button class="active" data-first-run-vision-mode="same" type="button"><i data-lucide="link-2"></i><span>复用语言接口</span></button>
+                  <button data-first-run-vision-mode="separate" type="button"><i data-lucide="split"></i><span>单独供应商</span></button>
+                </div>
+                <p class="first-run-shared-note" id="first-run-vision-shared-note">将复用语言模型的 API 地址和密钥，只需填写视觉模型 ID。</p>
+                <div class="first-run-form-grid" id="first-run-vision-separate-fields" hidden>
+                  <label class="first-run-field wide"><span>视觉供应商名称</span><input id="first-run-vision-provider" type="text" maxlength="80" autocomplete="off" placeholder="例如：视觉专用中转站"></label>
+                  <label class="first-run-field wide"><span>视觉 API 地址</span><input id="first-run-vision-base-url" type="url" maxlength="300" autocomplete="off" placeholder="https://example.com/v1"></label>
+                  <label class="first-run-field wide"><span>视觉 API 密钥</span><div class="secret-input-wrap"><input id="first-run-vision-api-key" type="password" autocomplete="new-password" placeholder="本地无鉴权接口可以留空"><button class="icon-button secret-toggle" data-secret-target="first-run-vision-api-key" type="button" title="显示密钥" aria-label="显示密钥"><i data-lucide="eye"></i></button></div></label>
+                </div>
+                <label class="first-run-field wide"><span>视觉模型 ID</span><div class="first-run-model-row"><input id="first-run-vision-model" list="first-run-vision-model-options" type="text" maxlength="200" autocomplete="off" placeholder="填写支持图片输入的模型"><button class="secondary-button" id="first-run-vision-discover" type="button"><i data-lucide="cloud-download"></i><span>获取模型</span></button></div><datalist id="first-run-vision-model-options"></datalist></label>
+                <div class="first-run-test-row"><div class="first-run-test-status" id="first-run-vision-status" data-state="idle"><i data-lucide="circle-dashed"></i><span><strong>等待检测</strong><small>也可以选择稍后配置</small></span></div><div class="first-run-test-actions"><button class="secondary-button" id="first-run-vision-skip" type="button"><i data-lucide="clock-3"></i><span>稍后配置</span></button><button class="primary-button" id="first-run-vision-test" type="button"><i data-lucide="scan-search"></i><span>检测视觉</span></button></div></div>
+              </div>
+              <div class="first-run-disabled-note" id="first-run-vision-disabled-note" hidden><i data-lucide="eye-off"></i><div><strong>图片理解将保持关闭</strong><span>之后可以随时在“模型与 API”中添加视觉模型。</span></div></div>
+            </section>
+
+            <section class="first-run-page" data-first-run-page="4">
+              <div class="first-run-section-heading"><div><span class="eyebrow">本机资料</span><h2>让昔夕认识你</h2><p>这些信息用于称呼、关系记忆和天气上下文，之后都能修改。</p></div></div>
+              <div class="first-run-form-grid identity-grid">
+                <label class="first-run-field"><span>角色名称</span><input id="first-run-assistant-name" type="text" maxlength="24" autocomplete="off" value="昔夕" placeholder="给她取一个名字" required></label>
+                <label class="first-run-field"><span>你的显示名称</span><input id="first-run-owner-name" type="text" maxlength="40" autocomplete="nickname" placeholder="昔夕平时怎么认出你"></label>
+                <label class="first-run-field"><span>昔夕对你的称呼</span><input id="first-run-owner-addresses" type="text" maxlength="160" placeholder="多个称呼用逗号分隔"></label>
+                <label class="first-run-field wide"><span>你们的关系</span><input id="first-run-owner-relationship" type="text" maxlength="80" value="创造者与重要的人"></label>
+                <label class="first-run-field"><span>所在城市（可选）</span><input id="first-run-city" type="text" maxlength="40" autocomplete="address-level2" placeholder="用于时间与天气提醒"></label>
+              </div>
+            </section>
+
+            <section class="first-run-page" data-first-run-page="5">
+              <div class="first-run-section-heading"><div><span class="eyebrow">按需启用</span><h2>选择初始能力</h2><p>开关会写入最终配置，缺少组件的能力可以稍后安装。</p></div></div>
+              <div class="first-run-feature-list">
+                <label><i data-lucide="audio-waveform"></i><span><strong>语音系统</strong><small>启用语音合成、语音输入与通话</small></span><span class="switch"><input id="first-run-feature-voice" type="checkbox" checked><span></span></span></label>
+                <label><i data-lucide="book-open-check"></i><span><strong>持续学习</strong><small>定期积累兴趣、动漫与可信知识</small></span><span class="switch"><input id="first-run-feature-learning" type="checkbox" checked><span></span></span></label>
+                <label><i data-lucide="globe-2"></i><span><strong>联网搜索</strong><small>遇到新信息时允许昔夕主动查询</small></span><span class="switch"><input id="first-run-feature-search" type="checkbox" checked><span></span></span></label>
+                <label><i data-lucide="cloud-sun"></i><span><strong>天气提醒</strong><small>根据上一步填写的城市提供提醒</small></span><span class="switch"><input id="first-run-feature-weather" type="checkbox"><span></span></span></label>
+                <label><i data-lucide="message-circle"></i><span><strong>QQ 通道</strong><small>配置账号后可以在私聊和群聊中使用</small></span><span class="switch"><input id="first-run-feature-qq" type="checkbox"><span></span></span></label>
+              </div>
+              <div class="first-run-qq-fields" id="first-run-qq-fields" hidden>
+                <label class="first-run-field"><span>使用者 QQ</span><input id="first-run-owner-qq" type="text" inputmode="numeric" maxlength="12" autocomplete="off" placeholder="接收管理指令的账号"></label>
+                <label class="first-run-field"><span>昔夕登录 QQ</span><input id="first-run-bot-qq" type="text" inputmode="numeric" maxlength="12" autocomplete="off" placeholder="为昔夕准备的机器人账号"></label>
+                <p>这里只记录账号对应关系，扫码登录可在进入应用后完成。</p>
+              </div>
+            </section>
+
+            <section class="first-run-page" data-first-run-page="6">
+              <div class="first-run-section-heading"><div><span class="eyebrow">最后一步</span><h2>确认配置</h2><p>点击完成后保存全部设置，然后单独打开昔夕应用页面。</p></div></div>
+              <div class="first-run-summary" id="first-run-summary"></div>
+              <div class="first-run-finish-status" id="first-run-finish-status" hidden><i data-lucide="loader-circle"></i><span><strong>正在应用配置</strong><small>保存完成后将进入昔夕</small></span></div>
+            </section>
+          </div>
+
+          <footer class="first-run-footer">
+            <button class="secondary-button" id="first-run-back" type="button" hidden><i data-lucide="arrow-left"></i><span>上一步</span></button>
+            <span id="first-run-footer-note">核心环境检查完成后即可继续</span>
+            <button class="primary-button" id="first-run-next" type="button"><span>下一步</span><i data-lucide="arrow-right"></i></button>
+            <button class="primary-button" id="first-run-finish" type="submit" hidden><i data-lucide="sparkles"></i><span>完成并进入昔夕</span></button>
+          </footer>
+        </section>
+      </div>
+    </form>
+  </main>
+
+  <div class="toast-region" id="toast-region" aria-live="polite"></div>
+  <script src="/vendor/lucide.min.js"></script>
+  <script src="/setup.js?v=20260825-parallel-installer"></script>
+</body>
+</html>

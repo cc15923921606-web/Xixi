@@ -1,0 +1,8 @@
+# One exact private value per line. Copy this file to
+# private_release_denylist.txt and keep the real file out of Git.
+owner-qq-id
+bot-qq-id
+owner-real-name
+owner-display-name
+private-workspace-path
+private-voice-identity

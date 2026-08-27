@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Steam News",
+    "url": "https://store.steampowered.com/feeds/news.xml",
+    "category": "游戏",
+    "priority": "interest",
+    "enabled": true
+  },
+  {
+    "name": "Anime News Network",
+    "url": "https://www.animenewsnetwork.com/news/rss.xml",
+    "category": "动漫",
+    "priority": "interest",
+    "enabled": true
+  },
+  {
+    "name": "Gematsu",
+    "url": "https://www.gematsu.com/feed",
+    "category": "游戏",
+    "priority": "interest",
+    "enabled": true
+  },
+  {
+    "name": "GitHub Blog",
+    "url": "https://github.blog/feed/",
+    "category": "技术",
+    "priority": "general",
+    "enabled": true
+  },
+  {
+    "name": "NASA News",
+    "url": "https://www.nasa.gov/news-release/feed/",
+    "category": "科学",
+    "priority": "academic",
+    "enabled": true
+  },
+  {
+    "name": "BBC World",
+    "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+    "category": "世界",
+    "priority": "general",
+    "enabled": true
+  }
+]

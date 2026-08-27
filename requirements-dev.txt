@@ -1,0 +1,5 @@
+-r requirements.txt
+
+faster-whisper>=1.2,<2
+pygame>=2.6,<3
+pyinstaller>=6.15,<7

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>昔夕通话</title>
+  <link rel="stylesheet" href="/call_overlay.css?v=20260822-toolbar-collapse-button">
+</head>
+<body>
+  <main class="call-overlay">
+    <div class="call-overlay-toolbar">
+      <div class="call-overlay-toolbar-drag pywebview-drag-region">
+        <span class="call-overlay-toolbar-title"><i data-lucide="phone-call" aria-hidden="true"></i><strong>通话</strong></span>
+      </div>
+      <div class="call-overlay-toolbar-actions">
+        <button id="overlay-hide" type="button" title="折叠为悬浮图标" aria-label="折叠为悬浮图标"><i data-lucide="minus"></i></button>
+        <button class="call-overlay-settings-trigger" id="overlay-settings-trigger" type="button" title="小窗设置" aria-label="小窗设置" aria-expanded="false"><i data-lucide="settings"></i></button>
+      </div>
+    </div>
+    <header class="call-overlay-header">
+      <button class="call-overlay-avatar" id="overlay-avatar" type="button" title="返回昔夕应用" aria-label="返回昔夕应用">
+        <img src="/assets/xixi-avatar-v3.png" alt="" draggable="false">
+      </button>
+      <div class="call-overlay-identity pywebview-drag-region">
+        <span><strong id="overlay-name">昔夕</strong><small id="overlay-status">通话中 · 00:00</small></span>
+      </div>
+      <button class="danger" id="overlay-hangup" type="button" title="挂断" aria-label="挂断"><i data-lucide="phone-off"></i></button>
+    </header>
+    <section class="call-overlay-transcript" id="overlay-transcript" aria-live="polite">
+      <p class="call-overlay-empty">等待你开口</p>
+    </section>
+    <aside class="call-overlay-settings" id="overlay-settings" hidden>
+      <div class="call-overlay-setting-heading"><span>不透明度</span><output id="overlay-opacity-value" for="overlay-opacity">100%</output></div>
+      <input id="overlay-opacity" type="range" min="45" max="100" step="5" value="100" aria-label="小窗不透明度">
+    </aside>
+    <span class="call-overlay-resize-handle north" data-resize-edge="north" aria-hidden="true"></span>
+    <span class="call-overlay-resize-handle south" data-resize-edge="south" aria-hidden="true"></span>
+    <span class="call-overlay-resize-handle east" data-resize-edge="east" aria-hidden="true"></span>
+    <span class="call-overlay-resize-handle west" data-resize-edge="west" aria-hidden="true"></span>
+    <span class="call-overlay-resize-handle north-east" data-resize-edge="north-east" aria-hidden="true"></span>
+    <span class="call-overlay-resize-handle north-west" data-resize-edge="north-west" aria-hidden="true"></span>
+    <span class="call-overlay-resize-handle south-east" data-resize-edge="south-east" aria-hidden="true"></span>
+    <span class="call-overlay-resize-handle south-west" data-resize-edge="south-west" aria-hidden="true"></span>
+  </main>
+  <script src="/vendor/lucide.min.js"></script>
+  <script src="/call_overlay.js?v=20260822-toolbar-collapse-button"></script>
+</body>
+</html>

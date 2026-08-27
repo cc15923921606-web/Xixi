@@ -1,0 +1,72 @@
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+*.pyd
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Personal runtime state. These files belong to the local user, never Git.
+data/*
+!data/README.md
+!data/voice_assets/
+data/voice_assets/*
+!data/voice_assets/README.md
+logs/
+TEMP/
+persona.txt
+knowledge.txt
+interest_profile.json
+README.personal.md
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Downloaded engines, models, and local component runtimes
+runtime/*
+!runtime/README.md
+whisper-*/
+
+# Build output and private release inputs
+packaging/build/
+packaging/dist/
+packaging/dist-build-*/
+packaging/staging/
+packaging/handle-tool/
+packaging/private_assets/
+packaging/private_release_denylist.txt
+packaging/public-upgrade-data-hashes.json
+packaging/voice_nltk_data/*
+!packaging/voice_nltk_data/README.md
+packaging/voice_verification_fixtures/*
+!packaging/voice_verification_fixtures/README.md
+packaging/*.log
+packaging/*.pid
+packaging/*.mp3
+packaging/voice_chunk_*
+packaging/python-*.nupkg
+packaging/Handle.zip
+
+# Maintainer-only voice evaluation tools contain private training assumptions.
+scripts/audit_chinese_bootstrap_corpus.py
+scripts/build_chinese_bootstrap_corpus.py
+scripts/evaluate_chinese_*.py
+
+# Release binaries are uploaded as GitHub Release assets, not Git objects.
+*.exe
+*.msi
+*.7z
+*.zip
+SHA256SUMS.txt
+
+# Editor and operating-system noise
+.idea/
+.vscode/
+*.lnk
+.DS_Store
+Thumbs.db
+desktop.ini

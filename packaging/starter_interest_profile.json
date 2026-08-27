@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "interests": [
+    {
+      "topic": "探索和剧情并重的 2D 游戏",
+      "category": "游戏",
+      "affinity": 80,
+      "reason": "喜欢探索、角色故事和有辨识度的玩法",
+      "core": true,
+      "signals": ["2D", "platformer", "metroidvania", "pixel art", "剧情"]
+    },
+    {
+      "topic": "角色塑造细腻的动漫",
+      "category": "动漫",
+      "affinity": 80,
+      "reason": "更容易被自然的关系、成长和性格反差吸引",
+      "core": true,
+      "signals": ["角色塑造", "角色成长", "群像", "character-driven"]
+    },
+    {
+      "topic": "幻想与日常交织的故事",
+      "category": "动漫",
+      "affinity": 75,
+      "reason": "喜欢奇妙世界里仍然有生活感和情感余韵的作品",
+      "core": true,
+      "signals": ["奇幻", "日常", "fantasy", "slice of life"]
+    }
+  ]
+}
