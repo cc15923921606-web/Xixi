@@ -187,11 +187,17 @@ class RuntimePathTests(unittest.TestCase):
         self.assertIn('bundle_mode = if ($OfflineBundle)', build_script)
         self.assertIn('third_party_licenses\\NapCatQQ-LICENSE.txt', build_script)
         self.assertIn('third_party_licenses\\GPT-SoVITS-LICENSE.txt', build_script)
+        self.assertIn('"LICENSE"', build_script)
+        self.assertIn('"NOTICE"', build_script)
+        self.assertIn('docs\\LICENSING.md', build_script)
 
         spec = (project / "packaging" / "xixi_public.spec").read_text(encoding="utf-8")
         self.assertIn('XIXI_BUILD_OFFLINE_BUNDLE', spec)
         self.assertIn('if offline_bundle:', spec)
         self.assertIn('THIRD_PARTY_NOTICES.md', spec)
+        self.assertIn('project / "LICENSE"', spec)
+        self.assertIn('project / "NOTICE"', spec)
+        self.assertIn('project / "docs" / "LICENSING.md"', spec)
         self.assertIn('third_party_licenses', spec)
         self.assertNotIn(
             '(str(project / "whisper-small-full"), "whisper-small-full"),\n    (str(project / "data"',

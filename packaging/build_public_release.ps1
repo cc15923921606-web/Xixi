@@ -260,6 +260,9 @@ $ManifestArtifacts = @(
     "runtime\voice\package\engine\GPT_SoVITS\TTS_infer_pack\TTS.py",
     "runtime\install_tools\uv.exe",
     "runtime\components\NapCat\launcher-user.bat",
+    "LICENSE",
+    "NOTICE",
+    "docs\LICENSING.md",
     "THIRD_PARTY_NOTICES.md",
     "third_party_licenses\NapCatQQ-LICENSE.txt",
     "third_party_licenses\GPT-SoVITS-LICENSE.txt"

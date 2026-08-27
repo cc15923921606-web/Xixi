@@ -31,6 +31,9 @@ datas = [
     (str(staging / "install_tools"), "runtime/install_tools"),
     (str(staging / "napcat"), "runtime/components/NapCat"),
     (str(project / "packaging" / "README.txt"), "."),
+    (str(project / "LICENSE"), "."),
+    (str(project / "NOTICE"), "."),
+    (str(project / "docs" / "LICENSING.md"), "docs"),
     (str(project / "THIRD_PARTY_NOTICES.md"), "."),
     (str(project / "third_party_licenses"), "third_party_licenses"),
 ]
