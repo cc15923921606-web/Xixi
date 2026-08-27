@@ -6,7 +6,6 @@
 
   <p>
     <a href="https://github.com/cc15923921606-web/Xixi/releases/tag/v0.1"><img src="https://img.shields.io/github/v/release/cc15923921606-web/Xixi?include_prereleases&sort=semver&label=release" alt="GitHub Release" /></a>
-    <a href="https://github.com/cc15923921606-web/Xixi/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/cc15923921606-web/Xixi/ci.yml?branch=main&label=CI" alt="CI" /></a>
     <a href="./LICENSE"><img src="https://img.shields.io/github/license/cc15923921606-web/Xixi" alt="License" /></a>
     <img src="https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D4" alt="Windows 10/11" />
     <img src="https://img.shields.io/badge/version-0.1%20preview-E67E22" alt="Version 0.1 Preview" />
