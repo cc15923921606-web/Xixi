@@ -153,18 +153,114 @@ docs/                隐私、授权、排障和发布文档
 
 昔夕建立在许多优秀的开源项目之上。感谢这些项目的维护者与贡献者，使本地语音、QQ 通讯、语音识别、模型接入和 Windows 桌面体验成为可能。
 
-| 项目 | 在昔夕中的用途 | 授权说明 |
+下面的清单覆盖昔夕源码直接调用、公开安装包直接携带、环境配置直接下载，以及构建发布流程直接使用的第三方项目。操作系统自带组件不重复列出；第三方项目继续递归使用的依赖以其包内元数据和许可证文件为准。
+
+### 应用运行依赖
+
+| 项目 | 在昔夕中的用途 | 声明 |
+| --- | --- | --- |
+| [OpenAI Python SDK](https://github.com/openai/openai-python) | OpenAI 及兼容网关的模型调用 | Apache-2.0 |
+| [Ollama Python](https://github.com/ollama/ollama-python) | 本地 Ollama 模型客户端 | MIT |
+| [HTTPX](https://github.com/encode/httpx) | 模型、天气、搜索、下载和 QQ HTTP 请求 | BSD-3-Clause |
+| [websockets](https://github.com/python-websockets/websockets) | OneBot 与 QQ 实时消息连接 | BSD-3-Clause |
+| [keyring](https://github.com/jaraco/keyring) | Windows 凭据管理器中的 API 密钥保存 | MIT |
+| [pywebview](https://github.com/r0x0r/pywebview) | Windows 桌面窗口与 WebView2 桥接 | BSD-3-Clause |
+| [SQLite](https://www.sqlite.org/) | 聊天记录、长期记忆、状态与成长数据存储 | Public Domain |
+| [Pillow](https://github.com/python-pillow/Pillow) | 图片、头像、二维码和安装器图像处理 | MIT-CMU |
+| [python-qrcode](https://github.com/lincolnloop/python-qrcode) | QQ 登录二维码渲染 | BSD |
+| [pystray](https://github.com/moses-palmer/pystray) | Windows 系统托盘 | LGPLv3 |
+| [NumPy](https://github.com/numpy/numpy) | 音频、图像与数值处理 | 按发行包内许可证使用 |
+| [python-sounddevice](https://github.com/spatialaudio/python-sounddevice) | 麦克风录音与 PortAudio 接入 | MIT |
+| [pynput](https://github.com/moses-palmer/pynput) | 全局热键监听 | LGPLv3 |
+| [MSS](https://github.com/BoboTiG/python-mss) | 通用屏幕截图 | MIT |
+| [DXcam](https://github.com/ra1nty/DXcam) | Windows Desktop Duplication 高速画面捕获 | MIT |
+| [comtypes](https://github.com/enthought/comtypes) | Windows COM 与 DXCam 支持 | MIT |
+| [opencv-python](https://github.com/opencv/opencv-python) | 游戏画面、变化检测与本地图像分析 | Apache-2.0 |
+| [imageio-ffmpeg](https://github.com/imageio/imageio-ffmpeg) | 内置 FFmpeg 获取与音频拼接 | BSD-2-Clause |
+| [pypinyin](https://github.com/mozillazg/python-pinyin) | 中文拼音、谐音与语音文本处理 | MIT |
+| [OpenCC Python](https://github.com/yichen0831/opencc-python) (`opencc-python-reimplemented`) | 中文文本标准化 | Apache License |
+| [edge-tts](https://github.com/rany2/edge-tts) | 可选的系统语音兼容能力 | 按原项目许可证使用 |
+| [Lucide](https://github.com/lucide-icons/lucide) | 应用界面图标 | ISC |
+
+### 可选组件、模型与数据
+
+| 项目 | 在昔夕中的用途 | 声明 |
 | --- | --- | --- |
 | [GPT-SoVITS](https://github.com/RVC-Boss/GPT-SoVITS) | 中文、日语与英语本地语音合成引擎 | MIT License |
+| [faster-whisper](https://github.com/SYSTRAN/faster-whisper) | 本地语音识别与通话转写 | MIT |
+| [CTranslate2](https://github.com/OpenNMT/CTranslate2) | Whisper 高性能推理运行时 | MIT |
+| [Hugging Face Hub](https://github.com/huggingface/huggingface_hub) | 模型文件获取与缓存 | Apache-2.0 |
+| [Pygame](https://github.com/pygame/pygame) | 完整音频播放 | LGPL |
+| [FFmpeg](https://ffmpeg.org/) | 音频转码、预处理与片段合并 | 按 FFmpeg 构建所含许可证使用 |
 | [NapCatQQ](https://github.com/NapNeko/NapCatQQ) | QQ 登录、私聊、群聊与 OneBot 通讯 | NapCatQQ License，捆绑再分发仅限非商业用途 |
-| [faster-whisper](https://github.com/SYSTRAN/faster-whisper) | 本地语音识别与通话转写 | 按原项目许可证使用 |
-| [Ollama](https://github.com/ollama/ollama) | 可选的本地语言模型与视觉模型运行环境 | 按原项目许可证使用 |
-| [pywebview](https://github.com/r0x0r/pywebview) | Windows 桌面窗口与 WebView2 桥接 | 按原项目许可证使用 |
-| [Lucide](https://github.com/lucide-icons/lucide) | 应用界面图标 | ISC License |
+| [OneBot 11](https://github.com/botuniverse/onebot-11) | QQ 消息接口协议 | 按原项目许可证使用 |
+| [Ollama](https://github.com/ollama/ollama) | 可选的本地语言与视觉模型运行环境 | MIT |
+| `qwen2.5vl:3b` | 默认可选的本地视觉模型 | 模型许可证归模型发布者所有 |
+| `Systran/faster-whisper-small` | 默认本地语音识别模型 | 模型许可证归模型发布者所有 |
+| GPT-SoVITS 基础模型 | `s1v3`、Chinese RoBERTa、Chinese HuBERT 与 ERes2Net 说话人模型 | 各模型按原发布许可证使用 |
+| G2PWModel | 中文多音字与字音预测 | 模型及数据按原项目许可证使用 |
+| fastText `lid.176.bin` | 语种识别 | 模型许可证归原发布者所有 |
+| [NLTK Data](https://github.com/nltk/nltk_data) | CMU 发音词典与英语词性标注数据 | 各数据包按自身许可证使用 |
+| [pyopenjtalk-plus](https://github.com/tsukumijima/pyopenjtalk-plus) | 日语文本转音素 | 按原项目许可证使用 |
+| [Microsoft Edge WebView2](https://developer.microsoft.com/microsoft-edge/webview2/) | 桌面界面渲染运行时 | Microsoft 软件许可条款 |
+| [uv](https://github.com/astral-sh/uv) | 环境配置中的高速 Python 包安装器 | Apache-2.0 / MIT |
+| NVIDIA CUDA 12.1 相关运行库 | GPT-SoVITS、PyTorch、ONNX Runtime 与 CTranslate2 的可选 GPU 加速 | NVIDIA 软件许可条款 |
 
-此外，昔夕还使用 OpenAI SDK、CTranslate2、FFmpeg、Pygame、OpenCV、Pillow、HTTPX 等开源软件。各组件的版权与许可证归原作者所有；本项目对它们的使用不代表相关项目或维护者对昔夕提供背书。
+<details>
+<summary><strong>昔夕本地语音系统使用的 Python 依赖</strong></summary>
 
-关键组件的第三方声明、随项目提供的许可证文本和再分发限制见 [第三方声明](THIRD_PARTY_NOTICES.md) 与 [`third_party_licenses/`](third_party_licenses/)。若发现署名或授权信息需要补充，欢迎通过 [Issues](https://github.com/lianhua99520/Xixi/issues) 提醒维护者。
+以下项目来自当前 GPT-SoVITS Windows 安装清单，环境配置会在独立的 Python 3.10 语音环境中安装：
+
+`pip`、`setuptools`、`wheel`、`torch`、`torchaudio`、`numpy`、`scipy`、`tensorboard`、`librosa`、`numba`、`pytorch-lightning`、`gradio`、`ffmpeg-python`、`onnxruntime-gpu`、`tqdm`、`funasr`、`cn2an`、`pypinyin`、`pyopenjtalk-plus`、`g2p_en`、`modelscope`、`sentencepiece`、`transformers`、`peft`、`chardet`、`PyYAML`、`psutil`、`jieba`、`split-lang`、`fast_langdetect`、`wordsegment`、`rotary_embedding_torch`、`ToJyutping`、`g2pk2`、`ko_pron`、`opencc`、`fastapi`、`x_transformers`、`torchmetrics`、`pydantic`、`ctranslate2` 与 `av`。
+
+训练音色、参考音频和昔夕专用模型不属于 Apache-2.0 代码授权范围，也不会因源码公开而获得再训练或再分发许可。
+
+</details>
+
+<details>
+<summary><strong>NapCatQQ 随包携带的 Node.js 与原生依赖</strong></summary>
+
+NapCatQQ 直接使用 `express` 与 `ws`，并随包携带以下 Node.js 模块：
+
+`accepts`、`body-parser`、`bytes`、`call-bind-apply-helpers`、`call-bound`、`content-disposition`、`content-type`、`cookie`、`cookie-signature`、`debug`、`depd`、`dunder-proto`、`ee-first`、`encodeurl`、`es-define-property`、`es-errors`、`es-object-atoms`、`escape-html`、`etag`、`finalhandler`、`forwarded`、`fresh`、`function-bind`、`get-intrinsic`、`get-proto`、`gopd`、`has-symbols`、`hasown`、`http-errors`、`iconv-lite`、`inherits`、`ipaddr.js`、`is-promise`、`math-intrinsics`、`media-typer`、`merge-descriptors`、`mime-db`、`mime-types`、`ms`、`negotiator`、`object-inspect`、`on-finished`、`once`、`parseurl`、`path-to-regexp`、`proxy-addr`、`qs`、`range-parser`、`raw-body`、`router`、`safer-buffer`、`send`、`serve-static`、`setprototypeof`、`side-channel`、`side-channel-list`、`side-channel-map`、`side-channel-weakmap`、`statuses`、`toidentifier`、`type-is`、`unpipe`、`vary` 与 `wrappy`。
+
+安装包还包含 NapCatQQ 提供的 DPAPI、FFmpeg、NAPI、网络数据包、ConPTY 与 WinPTY 原生模块。它们均属于 NapCatQQ 分发内容，并继续遵守 NapCatQQ 及各自上游许可证。
+
+</details>
+
+### 联网服务与下载来源
+
+| 服务 | 用途 |
+| --- | --- |
+| 用户配置的 OpenAI 兼容、OpenAI Responses、Anthropic、Gemini 或 Ollama 接口 | 语言模型与视觉模型推理 |
+| DuckDuckGo HTML / Lite、Microsoft Bing | 联网知识搜索与结果交叉验证 |
+| [Open-Meteo](https://open-meteo.com/) | 城市解析、当前天气、预报与极端天气判断 |
+| GitHub、GitHub API、Raw 与 Codeload | 源码、NapCatQQ、GPT-SoVITS 和 Ollama 发布文件获取 |
+| [ModelScope 魔搭](https://modelscope.cn/) | 默认优先的模型与组件下载渠道 |
+| Hugging Face 与 `hf-mirror.com` | Whisper、GPT-SoVITS 基础模型与备用下载 |
+| 南京大学 PyPI / PyTorch 镜像 | 本地语音 Python 与 CUDA 依赖下载 |
+| PyPI 与 PyTorch 官方下载站 | Python 和 PyTorch 备用下载 |
+| `ghfast.top`、`gh-proxy.com`、`ghproxy.net` | GitHub 文件下载备用代理 |
+| [Shields.io](https://shields.io/) | README 版本、平台与许可证徽章 |
+| Windows Package Manager `winget` | Ollama 安装失败时的系统级备用安装方式 |
+| 腾讯 QQ | QQ 账号登录与消息传输 |
+
+### 开发与发布工具
+
+| 工具 | 用途 |
+| --- | --- |
+| Python 3.12 | 昔夕主程序开发、测试与运行 |
+| Python 3.10 | GPT-SoVITS 独立语音环境 |
+| Git | 版本控制 |
+| Node.js 22 | 前端 JavaScript 语法检查 |
+| PowerShell 7 | Windows 公开版构建脚本 |
+| [PyInstaller](https://github.com/pyinstaller/pyinstaller) | Python 桌面程序冻结与打包 |
+| [Inno Setup 6](https://jrsoftware.org/isinfo.php) | Windows 安装程序生成 |
+| [Playwright](https://github.com/microsoft/playwright) | 桌面界面自动化与视觉检查 |
+| [Mermaid](https://github.com/mermaid-js/mermaid) | README 系统结构图 |
+| GitHub Actions、`actions/checkout`、`actions/setup-python`、`actions/setup-node` | 持续集成与公开仓库检查 |
+
+各组件的版权与许可证归原作者所有；昔夕对这些项目的使用不代表相关项目、服务或维护者为昔夕提供背书。关键组件的第三方声明、随项目提供的许可证文本和再分发限制见 [第三方声明](THIRD_PARTY_NOTICES.md) 与 [`third_party_licenses/`](third_party_licenses/)。若发现署名、依赖或授权信息需要补充，欢迎通过 [Issues](https://github.com/lianhua99520/Xixi/issues) 提醒维护者。
 
 ## 开源许可
 
