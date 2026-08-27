@@ -5,17 +5,17 @@
   <p>将模型、语音、记忆、QQ 与桌面陪伴整合进一个可配置、可扩展的本地工作台。</p>
 
   <p>
-    <a href="https://github.com/cc15923921606-web/Xixi/releases/tag/v0.1"><img src="https://img.shields.io/github/v/release/cc15923921606-web/Xixi?include_prereleases&sort=semver&label=release" alt="GitHub Release" /></a>
-    <a href="./LICENSE"><img src="https://img.shields.io/github/license/cc15923921606-web/Xixi" alt="License" /></a>
+    <a href="https://github.com/lianhua99520/Xixi/releases/tag/v0.1"><img src="https://img.shields.io/github/v/release/lianhua99520/Xixi?include_prereleases&sort=semver&label=release" alt="GitHub Release" /></a>
+    <a href="./LICENSE"><img src="https://img.shields.io/github/license/lianhua99520/Xixi" alt="License" /></a>
     <img src="https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D4" alt="Windows 10/11" />
     <img src="https://img.shields.io/badge/version-0.1%20preview-E67E22" alt="Version 0.1 Preview" />
   </p>
 
   <p>
-    <a href="https://github.com/cc15923921606-web/Xixi/releases/tag/v0.1"><strong>下载安装</strong></a>
+    <a href="https://github.com/lianhua99520/Xixi/releases/tag/v0.1"><strong>下载安装</strong></a>
     · <a href="#核心能力">核心能力</a>
     · <a href="#源码运行">源码运行</a>
-    · <a href="https://github.com/cc15923921606-web/Xixi/issues">问题反馈</a>
+    · <a href="https://github.com/lianhua99520/Xixi/issues">问题反馈</a>
   </p>
 </div>
 
@@ -64,9 +64,9 @@ flowchart LR
 
 ### Windows 安装包
 
-1. 前往 [昔夕 0.1 发布页面](https://github.com/cc15923921606-web/Xixi/releases/tag/v0.1)。
-2. 下载 `Xixi-Setup.exe` 和 `SHA256SUMS.txt`。
-3. 校验安装包 SHA-256 后运行安装程序。
+1. 前往 [昔夕 0.1 发布页面](https://github.com/lianhua99520/Xixi/releases/tag/v0.1)。
+2. 下载并运行 `Xixi-Setup.exe`；这是普通用户唯一需要下载的安装文件。
+3. 如需核对文件完整性，可选下载 `SHA256SUMS.txt` 并校验安装包 SHA-256。
 4. 选择安装位置，并在首次启动配置中心完成基础环境检查。
 5. 语言模型和视觉模型可以暂时跳过，之后在“设置 > 模型与 API”中配置。
 6. QQ、语音识别和本地语音组件可在“设置 > 环境配置”中按需安装。
@@ -108,7 +108,7 @@ API 密钥保存在当前 Windows 用户的凭据管理器中，不写入公开�
 - PowerShell 7，构建公开安装包时使用
 
 ```powershell
-git clone https://github.com/cc15923921606-web/Xixi.git
+git clone https://github.com/lianhua99520/Xixi.git
 cd Xixi
 py -3.12 -m venv venv
 .\venv\Scripts\python.exe -m pip install --upgrade pip
@@ -148,6 +148,23 @@ docs/                隐私、授权、排障和发布文档
 - 不要提交 API 密钥、QQ 信息、聊天记录、个人路径或日志。
 - 不要提交没有明确再分发许可的模型、音频、角色美术、数据集或第三方代码。
 - 行为变化应附带相应测试，并说明复现方式与验证结果。
+
+## 开源组件与致谢
+
+昔夕建立在许多优秀的开源项目之上。感谢这些项目的维护者与贡献者，使本地语音、QQ 通讯、语音识别、模型接入和 Windows 桌面体验成为可能。
+
+| 项目 | 在昔夕中的用途 | 授权说明 |
+| --- | --- | --- |
+| [GPT-SoVITS](https://github.com/RVC-Boss/GPT-SoVITS) | 中文、日语与英语本地语音合成引擎 | MIT License |
+| [NapCatQQ](https://github.com/NapNeko/NapCatQQ) | QQ 登录、私聊、群聊与 OneBot 通讯 | NapCatQQ License，捆绑再分发仅限非商业用途 |
+| [faster-whisper](https://github.com/SYSTRAN/faster-whisper) | 本地语音识别与通话转写 | 按原项目许可证使用 |
+| [Ollama](https://github.com/ollama/ollama) | 可选的本地语言模型与视觉模型运行环境 | 按原项目许可证使用 |
+| [pywebview](https://github.com/r0x0r/pywebview) | Windows 桌面窗口与 WebView2 桥接 | 按原项目许可证使用 |
+| [Lucide](https://github.com/lucide-icons/lucide) | 应用界面图标 | ISC License |
+
+此外，昔夕还使用 OpenAI SDK、CTranslate2、FFmpeg、Pygame、OpenCV、Pillow、HTTPX 等开源软件。各组件的版权与许可证归原作者所有；本项目对它们的使用不代表相关项目或维护者对昔夕提供背书。
+
+关键组件的第三方声明、随项目提供的许可证文本和再分发限制见 [第三方声明](THIRD_PARTY_NOTICES.md) 与 [`third_party_licenses/`](third_party_licenses/)。若发现署名或授权信息需要补充，欢迎通过 [Issues](https://github.com/lianhua99520/Xixi/issues) 提醒维护者。
 
 ## 开源许可
 
