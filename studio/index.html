@@ -278,8 +278,8 @@
                 <span class="game-loop-status" id="game-loop-status">观察未运行</span>
               </div>
               <div class="game-section game-interval-section" id="game-interval-section">
-                <div class="game-section-head"><span>最长观察间隔</span><strong id="game-interval-value">9 秒</strong></div>
-                <input id="game-interval" type="range" min="4" max="30" step="1" value="9" aria-label="最长观察间隔">
+                <div class="game-section-head"><span>最长观察间隔</span><strong id="game-interval-value">6 秒</strong></div>
+                <input id="game-interval" type="range" min="4" max="30" step="1" value="6" aria-label="最长观察间隔">
               </div>
               <div class="game-actions">
                 <button class="primary-button" id="save-game-settings"><i data-lucide="save"></i><span>保存设置</span></button>
@@ -543,9 +543,10 @@
               <div class="settings-panel-heading"><div class="settings-heading-content"><span class="settings-heading-icon"><i data-lucide="gamepad-2"></i></span><div><h2>游戏陪伴</h2><p>共享整个屏幕让昔夕观看你的游戏，并在聊天或通话中提供情绪陪伴</p></div></div></div>
               <div class="settings-group"><h3>观察设置</h3>
               <div class="setting-row"><div><strong>工作方式</strong><span>昔夕在本地持续检测画面变化，只有出现事件或达到最长等待时间才调用视觉模型；不会操作键盘或鼠标。</span></div><span class="status-pill" data-state="online">事件驱动</span></div>
-                <div class="setting-row"><div><strong>最长观察间隔</strong><span>没有明显事件时，超过这个时间仍会复查一次最新画面</span></div><div class="game-settings-interval"><input id="settings-game-interval" type="range" min="4" max="30" step="1" value="9" aria-label="游戏最长观察间隔"><output id="settings-game-interval-value">9 秒</output></div></div>
-                <div class="setting-row"><div><strong>画面变化灵敏度</strong><span>变化低于此比例时跳过视觉模型，减少延迟和用量</span></div><div class="game-settings-interval"><input id="settings-game-change-threshold" type="range" min="0.5" max="25" step="0.5" value="2.5" aria-label="画面变化灵敏度"><output id="settings-game-change-value">2.5%</output></div></div>
-                <div class="setting-row"><div><strong>强制复查周期</strong><span>画面持续静止若干轮后仍进行一次完整分析</span></div><div class="game-settings-interval"><input id="settings-game-idle-cycles" type="range" min="1" max="20" step="1" value="4" aria-label="强制复查周期"><output id="settings-game-idle-value">4 轮</output></div></div>
+                <div class="setting-row"><div><strong>最长观察间隔</strong><span>没有明显事件时，超过这个时间仍会复查一次最新画面</span></div><div class="game-settings-interval"><input id="settings-game-interval" type="range" min="4" max="30" step="1" value="6" aria-label="游戏最长观察间隔"><output id="settings-game-interval-value">6 秒</output></div></div>
+                <div class="setting-row"><div><strong>画面变化灵敏度</strong><span>变化低于此比例时跳过视觉模型，减少延迟和用量</span></div><div class="game-settings-interval"><input id="settings-game-change-threshold" type="range" min="0.5" max="25" step="0.5" value="1.5" aria-label="画面变化灵敏度"><output id="settings-game-change-value">1.5%</output></div></div>
+                <div class="setting-row"><div><strong>强制复查周期</strong><span>画面持续静止若干轮后仍进行一次完整分析</span></div><div class="game-settings-interval"><input id="settings-game-idle-cycles" type="range" min="1" max="20" step="1" value="2" aria-label="强制复查周期"><output id="settings-game-idle-value">2 轮</output></div></div>
+                <div class="setting-row"><div><strong>主动发言间隔</strong><span>控制平常局面下开口的目标频率；紧张或突然变化时会更快回应</span></div><div class="game-settings-interval"><input id="settings-game-companion-interval" type="range" min="6" max="30" step="1" value="12" aria-label="游戏主动发言间隔"><output id="settings-game-companion-interval-value">12 秒</output></div></div>
                 <div class="setting-row"><div><strong>主动陪玩</strong><span>昔夕会根据局面自然提醒、吐槽和接话，不占用主聊天历史</span></div><label class="switch"><input id="settings-game-companion" type="checkbox" checked><span></span></label></div>
                 <div class="setting-row"><div><strong>开始时自动通话</strong><span>游戏会话开始后自动进入最小化语音通话，结束游戏时同步挂断</span></div><label class="switch"><input id="settings-game-auto-call" type="checkbox" checked><span></span></label></div>
               </div>

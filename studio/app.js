@@ -7011,7 +7011,7 @@ function isGameCompanionEventFresh(event) {
   const expiresAt = Number(event?.expires_at_epoch || 0) * 1000;
   if (Number.isFinite(expiresAt) && expiresAt > 0 && now >= expiresAt) return false;
   const createdAt = gameCompanionEventTime(event);
-  return !createdAt || now - createdAt <= 12_000;
+  return !createdAt || now - createdAt <= 32_000;
 }
 
 function removeGameCompanionEvent(id) {
@@ -7161,12 +7161,13 @@ function renderGameStatus(game) {
     && Number.isFinite(nextGeneration)
     && previousGeneration !== nextGeneration
   ) resetGameCompanionQueue({ resetSeen: true });
-  if ($("#settings-game-interval")) $("#settings-game-interval").value = String(game.observation_interval_s || 9);
-  if ($("#settings-game-change-threshold")) $("#settings-game-change-threshold").value = String(Number(game.change_threshold || 0.025) * 100);
-  if ($("#settings-game-idle-cycles")) $("#settings-game-idle-cycles").value = String(game.max_idle_cycles || 4);
+  if ($("#settings-game-interval")) $("#settings-game-interval").value = String(game.observation_interval_s || 6);
+  if ($("#settings-game-change-threshold")) $("#settings-game-change-threshold").value = String(Number(game.change_threshold || 0.015) * 100);
+  if ($("#settings-game-idle-cycles")) $("#settings-game-idle-cycles").value = String(game.max_idle_cycles || 2);
+  if ($("#settings-game-companion-interval")) $("#settings-game-companion-interval").value = String(game.companion_interval_s || 12);
   if ($("#settings-game-companion")) $("#settings-game-companion").checked = game.companion_enabled !== false;
   if ($("#settings-game-auto-call")) $("#settings-game-auto-call").checked = game.auto_voice_call !== false;
-  if ($("#game-interval")) $("#game-interval").value = String(game.observation_interval_s || 9);
+  if ($("#game-interval")) $("#game-interval").value = String(game.observation_interval_s || 6);
   updateGamePreferenceLabels();
   updateGameModeControls();
   if ($("#game-screen-source")) $("#game-screen-source").textContent = game.screen_name || "整个屏幕";
@@ -7244,19 +7245,20 @@ function renderGameStatus(game) {
   if (state.gameTimer) { clearTimeout(state.gameTimer); state.gameTimer = null; }
   if (active) state.gameTimer = setTimeout(async () => {
     try { renderGameStatus(await api("/api/game/status")); } catch (error) { toast(error.message, "error"); }
-  }, 1000);
+  }, 650);
   iconRefresh();
 }
 
 function updateGamePreferenceLabels() {
-  if ($("#settings-game-interval-value")) $("#settings-game-interval-value").textContent = `${Number($("#settings-game-interval").value || 9)} 秒`;
-  if ($("#settings-game-change-value")) $("#settings-game-change-value").textContent = `${Number($("#settings-game-change-threshold").value || 2.5).toFixed(1)}%`;
-  if ($("#settings-game-idle-value")) $("#settings-game-idle-value").textContent = `${Number($("#settings-game-idle-cycles").value || 4)} 轮`;
+  if ($("#settings-game-interval-value")) $("#settings-game-interval-value").textContent = `${Number($("#settings-game-interval").value || 6)} 秒`;
+  if ($("#settings-game-change-value")) $("#settings-game-change-value").textContent = `${Number($("#settings-game-change-threshold").value || 1.5).toFixed(1)}%`;
+  if ($("#settings-game-idle-value")) $("#settings-game-idle-value").textContent = `${Number($("#settings-game-idle-cycles").value || 2)} 轮`;
+  if ($("#settings-game-companion-interval-value")) $("#settings-game-companion-interval-value").textContent = `${Number($("#settings-game-companion-interval").value || 12)} 秒`;
 }
 
 function updateGameModeControls() {
   $("#game-interval-section").hidden = false;
-  $("#game-interval-value").textContent = `${Number($("#game-interval").value || 9)} 秒`;
+  $("#game-interval-value").textContent = `${Number($("#game-interval").value || 6)} 秒`;
   $("#game-loop-status").textContent = state.game?.active ? "事件感知运行中" : "观察未运行";
 }
 
@@ -7278,9 +7280,10 @@ async function saveGamePreferences() {
       method: "POST",
       body: JSON.stringify({
         mode: "observe",
-        observation_interval_s: Number($("#settings-game-interval").value || 9),
-        change_threshold: Number($("#settings-game-change-threshold").value || 2.5) / 100,
-        max_idle_cycles: Number($("#settings-game-idle-cycles").value || 4),
+        observation_interval_s: Number($("#settings-game-interval").value || 6),
+        change_threshold: Number($("#settings-game-change-threshold").value || 1.5) / 100,
+        max_idle_cycles: Number($("#settings-game-idle-cycles").value || 2),
+        companion_interval_s: Number($("#settings-game-companion-interval").value || 12),
         companion_enabled: $("#settings-game-companion").checked,
         auto_voice_call: $("#settings-game-auto-call").checked,
       }),
@@ -7295,7 +7298,7 @@ async function saveGamePreferences() {
 }
 
 async function saveGameSettings() {
-  try { renderGameStatus(await api("/api/game/configure", { method: "POST", body: JSON.stringify({ mode: "observe", observation_interval_s: Number($("#game-interval").value || 9) }) })); toast("事件驱动观察设置已保存"); }
+  try { renderGameStatus(await api("/api/game/configure", { method: "POST", body: JSON.stringify({ mode: "observe", observation_interval_s: Number($("#game-interval").value || 6) }) })); toast("事件驱动观察设置已保存"); }
   catch (error) { toast(error.message, "error"); }
 }
 
@@ -7763,6 +7766,7 @@ function bindEvents() {
   $("#settings-game-interval").addEventListener("input", updateGamePreferenceLabels);
   $("#settings-game-change-threshold").addEventListener("input", updateGamePreferenceLabels);
   $("#settings-game-idle-cycles").addEventListener("input", updateGamePreferenceLabels);
+  $("#settings-game-companion-interval").addEventListener("input", updateGamePreferenceLabels);
   $("#save-game-preferences").addEventListener("click", saveGamePreferences);
   $("#save-game-settings").addEventListener("click", saveGameSettings);
   $("#toggle-game-session").addEventListener("click", toggleGameSession);

@@ -103,9 +103,10 @@ logger = logging.getLogger("studio")
 _GAME_ANALYSIS_MAX_AGE_S = 15.0
 _GAME_ANALYSIS_COMPARE_AFTER_S = 6.0
 _GAME_ANALYSIS_SCENE_CHANGE_THRESHOLD = 0.10
-_GAME_COMPANION_SOURCE_MAX_AGE_S = 16.0
-_GAME_COMPANION_EVENT_TTL_S = 10.0
-_GAME_EVENT_MIN_ANALYSIS_GAP_S = 2.5
+_GAME_COMPANION_SOURCE_MAX_AGE_S = 32.0
+_GAME_COMPANION_EVENT_TTL_S = 30.0
+_GAME_COMPANION_REPEAT_SCENE_GAP_S = 24.0
+_GAME_EVENT_MIN_ANALYSIS_GAP_S = 1.8
 _DEFAULT_HOST = "127.0.0.1"
 _DEFAULT_PORT = 8765
 _MAX_JSON_BYTES = 32 * 1024 * 1024
@@ -346,6 +347,7 @@ class StudioRuntime:
         self._game_last_visual_event_id = 0
         self._game_observation: dict[str, Any] = {
             "analysis": "",
+            "reaction": "",
             "phase": "idle",
             "event": "",
             "intensity": 0.0,
@@ -363,6 +365,7 @@ class StudioRuntime:
         self._game_companion_last_started = 0.0
         self._game_companion_next_at = 0.0
         self._game_companion_last_scene = ""
+        self._game_companion_last_scene_at = 0.0
         self._game_observation_sequence = 0
         self.backups = BackupManager(
             self.root,
@@ -3392,6 +3395,7 @@ class StudioRuntime:
             summary = " ".join(raw.replace("```json", "").replace("```", "").split())[:1200]
             return {
                 "analysis": summary,
+                "reaction": "",
                 "phase": "other",
                 "event": "",
                 "intensity": 0.35,
@@ -3429,8 +3433,10 @@ class StudioRuntime:
             speak_priority = 3 if score >= 0.85 else 2 if score >= 0.58 else 1 if score >= 0.30 else 0
         analysis_parts = [part for part in (summary, event) if part]
         analysis = " ".join(dict.fromkeys(analysis_parts))[:1200]
+        reaction = cls._clean_game_companion_line(payload.get("reaction"))
         return {
             "analysis": analysis,
+            "reaction": reaction,
             "phase": phase,
             "event": event,
             "intensity": intensity,
@@ -3475,8 +3481,12 @@ class StudioRuntime:
             '{"phase":"loading|menu|story|exploration|combat|decision|result|other",'
             '"summary":"用一两句简洁中文概括当前局面",'
             '"event":"相较上一帧刚发生的关键变化，没有就留空",'
-            '"intensity":0.0,"novelty":0.0,"confidence":0.0,"speak_priority":0}。'
-            "三个分数都在0到1之间；speak_priority为0到3，只有确实值得主动接话的变化才给2或3。"
+            '"intensity":0.0,"novelty":0.0,"confidence":0.0,"speak_priority":0,'
+            '"reaction":"一句自然中文台词或空字符串"}。'
+            "reaction要像陪在身边的人顺口说出的8到32字中文，可以紧张、吐槽、鼓励、得意或接话；"
+            "不要旁白、动作描写、引号、表情、反问收尾、按键建议或内部分析。"
+            "三个分数都在0到1之间；speak_priority为0到3。只要画面中有具体的新局面或可自然接话的内容，"
+            "至少给1并填写reaction；只有黑屏、纯加载、无法辨认或确实没有内容时才给0。"
             "JSON之外不要输出任何内容。"
         )
 
@@ -3632,25 +3642,8 @@ class StudioRuntime:
         return observation
 
     @staticmethod
-    def _clean_game_companion_text(value: str, assistant_name: str = "昔夕") -> str:
-        raw = str(value or "").strip()
-        if not raw or "SKIP" in raw.upper():
-            return ""
-        payload: dict[str, Any] | None = None
-        decoder = json.JSONDecoder()
-        for index, character in enumerate(raw):
-            if character != "{":
-                continue
-            try:
-                candidate, _ = decoder.raw_decode(raw[index:])
-            except json.JSONDecodeError:
-                continue
-            if isinstance(candidate, dict):
-                payload = candidate
-                break
-        if not payload or payload.get("speak") is not True:
-            return ""
-        text = " ".join(str(payload.get("text") or "").replace("\n", " ").split())
+    def _clean_game_companion_line(value: Any, assistant_name: str = "昔夕") -> str:
+        text = " ".join(str(value or "").replace("\n", " ").split())
         text = text.strip(" \"'`“”")
         for prefix in (
             f"{assistant_name}：", f"{assistant_name}:",
@@ -3672,6 +3665,27 @@ class StudioRuntime:
         ):
             return ""
         return text.rstrip("，,；;")
+
+    @classmethod
+    def _clean_game_companion_text(cls, value: str, assistant_name: str = "昔夕") -> str:
+        raw = str(value or "").strip()
+        if not raw or "SKIP" in raw.upper():
+            return ""
+        payload: dict[str, Any] | None = None
+        decoder = json.JSONDecoder()
+        for index, character in enumerate(raw):
+            if character != "{":
+                continue
+            try:
+                candidate, _ = decoder.raw_decode(raw[index:])
+            except json.JSONDecodeError:
+                continue
+            if isinstance(candidate, dict):
+                payload = candidate
+                break
+        if not payload or payload.get("speak") is not True:
+            return ""
+        return cls._clean_game_companion_line(payload.get("text"), assistant_name)
 
     def _game_companion_candidates(self, game: dict[str, Any]) -> list[dict[str, Any]]:
         del game
@@ -3770,27 +3784,50 @@ class StudioRuntime:
                 logger.warning("game companion model failed: %s", exc)
         if not text:
             return
+        self._publish_game_companion_event(generation, game, observation, text)
+
+    def _publish_game_companion_event(
+        self,
+        generation: int,
+        game: dict[str, Any],
+        observation: dict[str, Any],
+        text: str,
+    ) -> bool:
+        text = self._clean_game_companion_line(text, self.cfg.assistant_name)
+        if not text:
+            return False
+        observed_at_epoch = float(observation.get("captured_at_epoch") or time.time())
+        observation_sequence = int(observation.get("sequence") or 0)
+        if time.time() - observed_at_epoch > _GAME_COMPANION_SOURCE_MAX_AGE_S:
+            return False
         created_at_epoch = time.time()
         expires_at_epoch = min(
             created_at_epoch + _GAME_COMPANION_EVENT_TTL_S,
             observed_at_epoch + _GAME_COMPANION_SOURCE_MAX_AGE_S,
         )
         if expires_at_epoch <= created_at_epoch + 1.0:
-            return
+            return False
         scene_signature = "".join(
             re.findall(r"[\w\u4e00-\u9fff]", str(observation.get("analysis") or "").casefold())
         )[:280]
         with self._game_lock:
             latest_sequence = int(self._game_observation.get("sequence") or 0)
+            repeated_too_soon = bool(
+                scene_signature
+                and scene_signature == self._game_companion_last_scene
+                and created_at_epoch - self._game_companion_last_scene_at
+                < _GAME_COMPANION_REPEAT_SCENE_GAP_S
+            )
             if (
                 generation != self._game_companion_generation
                 or not self.games.status().get("active")
                 or (observation_sequence and latest_sequence != observation_sequence)
                 or time.time() >= expires_at_epoch
-                or (scene_signature and scene_signature == self._game_companion_last_scene)
+                or repeated_too_soon
             ):
-                return
+                return False
             self._game_companion_last_scene = scene_signature
+            self._game_companion_last_scene_at = created_at_epoch
             self._game_companion_events = [{
                 "id": uuid.uuid4().hex,
                 "text": text,
@@ -3803,6 +3840,7 @@ class StudioRuntime:
                 "observation_sequence": observation_sequence,
                 "session_generation": generation,
             }]
+        return True
 
     def _maybe_schedule_game_companion(
         self,
@@ -3823,14 +3861,25 @@ class StudioRuntime:
             priority = max(0, min(3, int(observation.get("speak_priority") or 0)))
         except (TypeError, ValueError):
             priority = 0
-        if priority <= 0:
-            return
         now = time.monotonic()
-        minimum_gap = {1: 22.0, 2: 10.0, 3: 4.0}[priority]
+        target_interval = max(6.0, min(30.0, float(game.get("companion_interval_s") or 12.0)))
         with self._game_lock:
+            silence_s = now - self._game_companion_last_started
+            if priority <= 0:
+                if (
+                    self._game_companion_last_started <= 0
+                    or silence_s < target_interval * 1.6
+                ):
+                    return
+                priority = 1
             worker_alive = bool(
                 self._game_companion_thread and self._game_companion_thread.is_alive()
             )
+            minimum_gap = {
+                1: target_interval,
+                2: max(5.0, target_interval * 0.55),
+                3: max(3.0, target_interval * 0.30),
+            }[priority]
             due = now >= self._game_companion_next_at
             priority_due = priority >= 2 and now - self._game_companion_last_started >= minimum_gap
             if worker_alive or not (due or priority_due):
@@ -3838,18 +3887,32 @@ class StudioRuntime:
             generation = self._game_companion_generation
             self._game_companion_last_started = now
             next_delay = {
-                1: random.uniform(28.0, 48.0),
-                2: random.uniform(16.0, 28.0),
-                3: random.uniform(8.0, 16.0),
+                1: random.uniform(target_interval, target_interval * 1.35),
+                2: random.uniform(max(6.0, target_interval * 0.65), target_interval),
+                3: random.uniform(max(4.0, target_interval * 0.40), max(6.0, target_interval * 0.70)),
             }[priority]
             self._game_companion_next_at = now + next_delay
-            self._game_companion_thread = threading.Thread(
-                target=self._generate_game_companion_event,
-                args=(generation, dict(game), dict(observation)),
-                name="xixi-game-companion",
-                daemon=True,
+            direct_reaction = self._clean_game_companion_line(
+                observation.get("reaction"),
+                self.cfg.assistant_name,
             )
-            self._game_companion_thread.start()
+            if direct_reaction:
+                self._game_companion_thread = None
+            else:
+                self._game_companion_thread = threading.Thread(
+                    target=self._generate_game_companion_event,
+                    args=(generation, dict(game), dict(observation)),
+                    name="xixi-game-companion",
+                    daemon=True,
+                )
+                self._game_companion_thread.start()
+        if direct_reaction:
+            self._publish_game_companion_event(
+                generation,
+                game,
+                observation,
+                direct_reaction,
+            )
 
     @staticmethod
     def _game_loop_interval(
@@ -3989,12 +4052,14 @@ class StudioRuntime:
                 self._game_companion_generation += 1
                 self._game_companion_thread = None
                 self._game_companion_events = []
-                self._game_companion_last_started = 0.0
+                self._game_companion_last_started = time.monotonic()
                 self._game_companion_next_at = time.monotonic() + 2.5
                 self._game_companion_last_scene = ""
+                self._game_companion_last_scene_at = 0.0
                 self._game_observation_sequence = 0
                 self._game_observation = {
                     "analysis": "",
+                    "reaction": "",
                     "phase": "idle",
                     "event": "",
                     "intensity": 0.0,
@@ -4022,6 +4087,7 @@ class StudioRuntime:
                 self._game_companion_events = []
                 self._game_companion_next_at = 0.0
                 self._game_companion_last_scene = ""
+                self._game_companion_last_scene_at = 0.0
             thread = self._game_thread
             if thread and thread.is_alive() and thread is not threading.current_thread():
                 thread.join(timeout=2.0)

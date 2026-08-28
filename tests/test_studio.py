@@ -3851,6 +3851,47 @@ class StudioTests(unittest.TestCase):
             candidate = runtime.raw_brain._request_language_candidate.call_args.args[0]
             self.assertEqual(candidate["model_name"], runtime.cfg.openai_model)
 
+    def test_game_companion_uses_direct_vision_reaction_without_second_model_call(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            runtime = self.make_runtime(Path(tmp))
+            runtime.games.status = MagicMock(return_value={"active": True})  # type: ignore[method-assign]
+            runtime.raw_brain._request_language_candidate = MagicMock()  # type: ignore[method-assign]
+            runtime._game_companion_last_started = time.monotonic() - 30
+            runtime._game_companion_next_at = 0.0
+
+            runtime._maybe_schedule_game_companion(
+                {
+                    "analysis": "首领刚刚进入第二阶段",
+                    "reaction": "好，第二阶段来了，稳住别急。",
+                    "captured_at_epoch": time.time(),
+                    "skipped": False,
+                    "stale_result": False,
+                    "speak_priority": 3,
+                },
+                {
+                    "active": True,
+                    "companion_enabled": True,
+                    "companion_interval_s": 12,
+                },
+            )
+
+            self.assertEqual(runtime._game_companion_events[0]["text"], "好，第二阶段来了，稳住别急。")
+            runtime.raw_brain._request_language_candidate.assert_not_called()
+
+    def test_game_companion_allows_same_scene_again_after_repeat_gap(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            runtime = self.make_runtime(Path(tmp))
+            runtime.games.status = MagicMock(return_value={"active": True})  # type: ignore[method-assign]
+            observation = {
+                "analysis": "角色正在持续挑战首领",
+                "captured_at_epoch": time.time(),
+            }
+
+            self.assertTrue(runtime._publish_game_companion_event(0, {}, observation, "这一段压迫感还挺强的。"))
+            self.assertFalse(runtime._publish_game_companion_event(0, {}, observation, "先稳住，别被它带乱节奏。"))
+            runtime._game_companion_last_scene_at -= 25
+            self.assertTrue(runtime._publish_game_companion_event(0, {}, observation, "先稳住，别被它带乱节奏。"))
+
     def test_game_companion_discards_superseded_observation(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             runtime = self.make_runtime(Path(tmp))
@@ -3920,7 +3961,8 @@ class StudioTests(unittest.TestCase):
         parsed = StudioRuntime._parse_game_vision_result(
             '{"phase":"combat","summary":"角色正在和首领战斗。",'
             '"event":"首领进入第二阶段。","intensity":0.9,'
-            '"novelty":0.8,"confidence":0.92,"speak_priority":3}'
+            '"novelty":0.8,"confidence":0.92,"speak_priority":3,'
+            '"reaction":"第二阶段来了，这下得认真一点。"}'
         )
 
         self.assertTrue(parsed["structured"])
@@ -3928,6 +3970,7 @@ class StudioTests(unittest.TestCase):
         self.assertIn("首领进入第二阶段", parsed["analysis"])
         self.assertEqual(parsed["speak_priority"], 3)
         self.assertEqual(parsed["intensity"], 0.9)
+        self.assertEqual(parsed["reaction"], "第二阶段来了，这下得认真一点。")
 
     def test_game_vision_result_keeps_plain_provider_fallback(self) -> None:
         parsed = StudioRuntime._parse_game_vision_result("当前正在结算，角色获得了奖励。")

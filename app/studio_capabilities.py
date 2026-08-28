@@ -2842,9 +2842,10 @@ class GameControl:
         self.journal = journal
         self._lock = threading.RLock()
         self._active = False
-        self._observation_interval_s = 9.0
-        self._change_threshold = 0.025
-        self._max_idle_cycles = 4
+        self._observation_interval_s = 6.0
+        self._change_threshold = 0.015
+        self._max_idle_cycles = 2
+        self._companion_interval_s = 12.0
         self._companion_enabled = True
         self._auto_voice_call = True
         self._load()
@@ -2888,6 +2889,10 @@ class GameControl:
                 1,
                 min(20, int(payload.get("max_idle_cycles", self._max_idle_cycles))),
             )
+            self._companion_interval_s = max(
+                6.0,
+                min(30.0, float(payload.get("companion_interval_s", self._companion_interval_s))),
+            )
             self._companion_enabled = bool(payload.get("companion_enabled", self._companion_enabled))
             self._auto_voice_call = bool(payload.get("auto_voice_call", self._auto_voice_call))
         except Exception:
@@ -2900,6 +2905,7 @@ class GameControl:
             "observation_interval_s": self._observation_interval_s,
             "change_threshold": self._change_threshold,
             "max_idle_cycles": self._max_idle_cycles,
+            "companion_interval_s": self._companion_interval_s,
             "companion_enabled": self._companion_enabled,
             "auto_voice_call": self._auto_voice_call,
         }
@@ -2965,6 +2971,7 @@ class GameControl:
             "observation_interval_s": self._observation_interval_s,
             "change_threshold": self._change_threshold,
             "max_idle_cycles": self._max_idle_cycles,
+            "companion_interval_s": self._companion_interval_s,
             "companion_enabled": self._companion_enabled,
             "auto_voice_call": self._auto_voice_call,
             "input": {
@@ -2990,6 +2997,11 @@ class GameControl:
                 )
             if "max_idle_cycles" in payload:
                 self._max_idle_cycles = max(1, min(20, int(payload["max_idle_cycles"])))
+            if "companion_interval_s" in payload:
+                self._companion_interval_s = max(
+                    6.0,
+                    min(30.0, float(payload["companion_interval_s"])),
+                )
             if "companion_enabled" in payload:
                 self._companion_enabled = bool(payload["companion_enabled"])
             if "auto_voice_call" in payload:
