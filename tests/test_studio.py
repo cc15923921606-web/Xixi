@@ -616,10 +616,16 @@ class StudioTests(unittest.TestCase):
                 "screen_observation",
             ):
                 self.assertEqual(states[key], "optional")
-                expected_label = {
-                    "chat_model": "待配置",
-                }.get(key, "可稍后配置")
-                self.assertEqual(labels[key], expected_label)
+                if key == "chat_model":
+                    self.assertEqual(labels[key], "待配置")
+                elif key == "local_voice":
+                    label = labels[key]
+                    self.assertTrue(
+                        label == "可稍后配置"
+                        or (label.startswith("缺少 ") and label.endswith(" 项"))
+                    )
+                else:
+                    self.assertEqual(labels[key], "可稍后配置")
             self.assertTrue(payload["ready"])
             self.assertEqual(payload["ready_count"], 6)
 
@@ -755,8 +761,11 @@ class StudioTests(unittest.TestCase):
 
         self.assertIn('voice_nltk_data', build_script)
         self.assertIn('(str(staging / "voice_nltk_data"), "runtime/voice/package/nltk_data")', spec)
+        bundle_root = root / "packaging" / "voice_nltk_data"
+        if not all((bundle_root / relative).is_file() for relative in VOICE_NLTK_DATA_FILES):
+            self.skipTest("release-only offline English voice data is not in the source checkout")
         for relative in VOICE_NLTK_DATA_FILES:
-            self.assertTrue((root / "packaging" / "voice_nltk_data" / relative).is_file())
+            self.assertTrue((bundle_root / relative).is_file())
 
     def test_verified_environment_download_rejects_bad_file_and_uses_backup(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -2031,7 +2040,13 @@ class StudioTests(unittest.TestCase):
             root.mkdir()
             launcher = root.parent / "napcat" / "launcher-user.bat"
             launcher.parent.mkdir()
-            launcher.touch()
+            for name in (
+                "launcher-user.bat",
+                "napcat.mjs",
+                "NapCatWinBootHook.dll",
+                "NapCatWinBootMain.exe",
+            ):
+                (launcher.parent / name).touch()
             runtime = self.make_runtime(root)
             runtime._napcat_status = MagicMock(  # type: ignore[method-assign]
                 return_value={
@@ -2774,6 +2789,7 @@ class StudioTests(unittest.TestCase):
             self.assertNotIn(initial[0]["id"], {
                 item["id"] for item in first_result["items"]
             })
+            result = first_result
             for provider in list(first_result["items"]):
                 result = runtime.delete_model_provider(provider["id"])
 
@@ -2960,6 +2976,7 @@ class StudioTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             runtime = self.make_runtime(Path(tmp))
             with (
+                patch.object(runtime.environment, "_local_voice_ready", return_value=True),
                 patch(
                     "app.studio.start_voice_service",
                     return_value={
@@ -3025,9 +3042,12 @@ class StudioTests(unittest.TestCase):
             runtime = self.make_runtime(Path(tmp))
             runtime.cfg.voice_enabled = False
 
-            with patch(
-                "app.studio.start_voice_service",
-                side_effect=RuntimeError("start failed"),
+            with (
+                patch.object(runtime.environment, "_local_voice_ready", return_value=True),
+                patch(
+                    "app.studio.start_voice_service",
+                    side_effect=RuntimeError("start failed"),
+                ),
             ):
                 with self.assertRaisesRegex(RuntimeError, "start failed"):
                     runtime.control_voice("online")

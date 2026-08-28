@@ -18,6 +18,12 @@ from app.runtime_paths import (
 
 
 class RuntimePathTests(unittest.TestCase):
+    def assertSamePath(self, actual: Path, expected: Path) -> None:
+        self.assertEqual(
+            os.path.normcase(os.path.realpath(actual)),
+            os.path.normcase(os.path.realpath(expected)),
+        )
+
     def test_public_first_launch_seeds_packaged_napcat_without_overwriting_user_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             install_root = Path(tmp) / "Xixi"
@@ -47,14 +53,14 @@ class RuntimePathTests(unittest.TestCase):
             root = Path(tmp) / "xixi-source"
             paths = resolve_runtime_paths(root, public_release=False, environ={})
 
-            self.assertEqual(paths.data_home, root)
-            self.assertEqual(paths.data_dir, root / "data")
-            self.assertEqual(paths.logs_dir, root / "logs")
+            self.assertSamePath(paths.data_home, root)
+            self.assertSamePath(paths.data_dir, root / "data")
+            self.assertSamePath(paths.logs_dir, root / "logs")
             self.assertFalse((root / DATA_POINTER_FILENAME).exists())
 
             cfg = Config(root=root)
-            self.assertEqual(cfg.data_root, root / "data")
-            self.assertEqual(cfg.persona_file, root / "persona.txt")
+            self.assertSamePath(cfg.data_root, root / "data")
+            self.assertSamePath(cfg.persona_file, root / "persona.txt")
 
     def test_public_layout_migrates_and_verifies_legacy_data(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -87,7 +93,7 @@ class RuntimePathTests(unittest.TestCase):
 
             paths = resolve_runtime_paths(root, public_release=True, environ={})
 
-            self.assertEqual(paths.data_home, parent / "XixiPublic数据")
+            self.assertSamePath(paths.data_home, parent / "XixiPublic数据")
             self.assertEqual(
                 (paths.data_dir / "studio_settings.json").read_text(encoding="utf-8"),
                 '{"voice_enabled": true}',
@@ -158,7 +164,7 @@ class RuntimePathTests(unittest.TestCase):
 
             paths = resolve_runtime_paths(app_root, public_release=True, environ={})
 
-            self.assertEqual(paths.data_home, install_root / "用户数据")
+            self.assertSamePath(paths.data_home, install_root / "用户数据")
             self.assertEqual(
                 (paths.data_dir / "studio_settings.json").read_text(encoding="utf-8"),
                 '{"assistant_name": "星璃"}',
@@ -239,7 +245,7 @@ class RuntimePathTests(unittest.TestCase):
                 environ={"XIXI_DATA_HOME": str(data_home)},
             )
 
-            self.assertEqual(paths.data_dir, root / "data")
+            self.assertSamePath(paths.data_dir, root / "data")
             self.assertEqual(legacy.read_text(encoding="utf-8"), "legacy")
             self.assertTrue((data_home / MIGRATION_FAILURE_FILENAME).is_file())
             self.assertFalse((root / DATA_POINTER_FILENAME).exists())

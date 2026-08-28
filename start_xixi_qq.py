@@ -279,7 +279,13 @@ def configured_assistant_name() -> str:
 
 def status(message: str) -> None:
     name = configured_assistant_name()
-    print(f"[{name}] {str(message).replace('昔夕', name)}", flush=True)
+    text = f"[{name}] {str(message).replace('昔夕', name)}"
+    try:
+        print(text, flush=True)
+    except UnicodeEncodeError:
+        encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
+        printable = text.encode(encoding, errors="replace").decode(encoding)
+        print(printable, flush=True)
 
 
 def onebot_login() -> dict[str, object] | None:

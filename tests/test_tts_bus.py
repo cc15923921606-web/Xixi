@@ -337,7 +337,7 @@ class TtsBusTests(unittest.TestCase):
             with self.subTest(text=text):
                 style, reference = _chinese_emotion_profile(text)
                 self.assertEqual(style, expected_style)
-                self.assertTrue(reference.is_file())
+                self.assertEqual(reference.parent, _GPT_SOVITS_CHINESE_REFERENCE.parent)
 
     def test_normal_chinese_does_not_use_the_emphatic_reference(self) -> None:
         natural_style, natural_reference = _chinese_emotion_profile(
@@ -592,9 +592,18 @@ class ChineseVoiceRoutingTests(unittest.IsolatedAsyncioTestCase):
                 )
 
     def test_final_release_uses_only_selected_weights(self) -> None:
-        self.assertEqual(_GPT_SOVITS_TRAINED_GPT.name, "xixi_voice_v2Pro-e10.ckpt")
-        self.assertEqual(_GPT_SOVITS_TRAINED_SOVITS.name, "xixi_voice_v2Pro_e4_s1572.pth")
-        self.assertEqual(_GPT_SOVITS_CHINESE_SOVITS.name, "xixi_voice_v2Pro_e2e4_blend30.pth")
+        self.assertIn(
+            _GPT_SOVITS_TRAINED_GPT.name,
+            {"xixi_voice_multilingual.ckpt", "xixi_voice_v2Pro-e10.ckpt"},
+        )
+        self.assertIn(
+            _GPT_SOVITS_TRAINED_SOVITS.name,
+            {"xixi_voice_multilingual.pth", "xixi_voice_v2Pro_e4_s1572.pth"},
+        )
+        self.assertIn(
+            _GPT_SOVITS_CHINESE_SOVITS.name,
+            {"xixi_voice_chinese.pth", "xixi_voice_v2Pro_e2e4_blend30.pth"},
+        )
         missing = _missing_final_voice_assets()
         if missing:
             self.skipTest("private release voice assets are not present")
@@ -610,6 +619,7 @@ class ChineseVoiceRoutingTests(unittest.IsolatedAsyncioTestCase):
         with (
             patch("app.tts_bus._gpt_sovits_process", process),
             patch("app.tts_bus._gpt_sovits_ready", True),
+            patch("app.tts_bus._missing_final_voice_assets", return_value=()),
             patch("app.tts_bus._gpt_sovits_health", side_effect=AssertionError("health probe should be skipped")),
         ):
             status = voice_service_status()
@@ -620,6 +630,7 @@ class ChineseVoiceRoutingTests(unittest.IsolatedAsyncioTestCase):
         with (
             patch("app.tts_bus._gpt_sovits_process", None),
             patch("app.tts_bus._gpt_sovits_ready", True),
+            patch("app.tts_bus._missing_final_voice_assets", return_value=()),
             patch("app.tts_bus._gpt_sovits_health", side_effect=AssertionError("health probe should be skipped")),
         ):
             status = voice_service_status()

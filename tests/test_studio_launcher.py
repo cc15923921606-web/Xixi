@@ -178,6 +178,7 @@ class StudioLauncherIsolationTests(unittest.TestCase):
                 patch("start_xixi_qq.register_managed_qq_account"),
                 patch("start_xixi_qq.register_managed_qq_process") as register_process,
                 patch("start_xixi_qq.subprocess.Popen", return_value=process) as popen,
+                patch("start_xixi_qq.status"),
             ):
                 login = launch_napcat(2113357857)
 
@@ -199,11 +200,20 @@ class StudioLauncherIsolationTests(unittest.TestCase):
             register_process.assert_called_once_with("2113357857", 4321)
 
     def test_personal_source_edition_uses_workspace_voice_engine(self) -> None:
-        with patch("start_xixi_qq.sys.frozen", False, create=True):
+        expected = ROOT.parent / "work" / "GPT-SoVITS"
+        with (
+            patch("start_xixi_qq.sys.frozen", False, create=True),
+            patch("start_xixi_qq.resolve_voice_root", return_value=expected) as resolve,
+        ):
             self.assertEqual(
                 _default_gpt_sovits_root(),
-                ROOT.parent / "work" / "GPT-SoVITS",
+                expected,
             )
+        resolve.assert_called_once_with(
+            expected,
+            allow_registered_fallback=True,
+            discover=True,
+        )
 
     def test_public_edition_uses_its_isolated_component_directory(self) -> None:
         expected = Path(RUNTIME_PATHS.components_dir) / "GPT-SoVITS"
