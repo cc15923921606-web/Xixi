@@ -184,18 +184,25 @@ class StudioLauncherIsolationTests(unittest.TestCase):
 
             self.assertEqual(login["user_id"], 2113357857)
             command = popen.call_args.args[0]
-            self.assertEqual(command, [
-                str(root / "NapCatWinBootMain.exe"),
-                str(qq),
-                str(root / "NapCatWinBootHook.dll"),
-                "2113357857",
-            ])
+            self.assertEqual(len(command), 4)
+            for actual, expected in zip(
+                command[:3],
+                (
+                    root / "NapCatWinBootMain.exe",
+                    qq,
+                    root / "NapCatWinBootHook.dll",
+                ),
+            ):
+                self.assertTrue(os.path.samefile(actual, expected))
+            self.assertEqual(command[3], "2113357857")
             self.assertNotIn("cmd.exe", command)
             self.assertNotIn("-q", command)
-            self.assertEqual(popen.call_args.kwargs["env"]["NAPCAT_MAIN_PATH"], str(root / "napcat.mjs"))
+            launched_main = Path(popen.call_args.kwargs["env"]["NAPCAT_MAIN_PATH"])
+            self.assertTrue(os.path.samefile(launched_main, root / "napcat.mjs"))
+            load_path = launched_main.parent / "loadNapCat.js"
             self.assertEqual(
-                (root / "loadNapCat.js").read_text(encoding="utf-8"),
-                f'(async () => {{await import({json.dumps(napcat_module_url(root / "napcat.mjs"))})}})()\n',
+                load_path.read_text(encoding="utf-8"),
+                f'(async () => {{await import({json.dumps(napcat_module_url(launched_main))})}})()\n',
             )
             register_process.assert_called_once_with("2113357857", 4321)
 
