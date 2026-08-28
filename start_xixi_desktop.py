@@ -656,6 +656,7 @@ class NativeCallAvatarBubble:
         self._application = None
         self._closed = False
         self._requested_visible = False
+        self._visible = False
         self._x = 24
         self._y = 24
         self._width = CALL_OVERLAY_COLLAPSED_SIZE
@@ -666,6 +667,8 @@ class NativeCallAvatarBubble:
             if self._thread and self._thread.is_alive():
                 return
             self._closed = False
+            self._visible = False
+            self._ready.clear()
             self._thread = threading.Thread(
                 target=self._run,
                 name="xixi-native-call-avatar",
@@ -785,6 +788,7 @@ class NativeCallAvatarBubble:
                     return
                 with self._lock:
                     self._requested_visible = False
+                    self._visible = False
                 form.Hide()
                 threading.Thread(
                     target=self._on_activate,
@@ -814,6 +818,8 @@ class NativeCallAvatarBubble:
             if requested_visible:
                 form.Show()
                 apply_no_activate_style()
+                with self._lock:
+                    self._visible = bool(form.Visible)
             Application.Run(context)
             form.MouseDown -= mouse_down
             form.MouseMove -= mouse_move
@@ -828,34 +834,59 @@ class NativeCallAvatarBubble:
                 self._application = None
                 self._region_type = None
                 self._graphics_path_type = None
+                self._visible = False
             self._ready.set()
             try:
                 ctypes.windll.ole32.CoUninitialize()
             except Exception:
                 pass
 
-    def _invoke(self, action) -> bool:
+    def _invoke(self, action, *, timeout_seconds: float = 1.25) -> bool:
         if not self._ready.wait(3):
+            logger.warning("native call avatar did not become ready in time")
             return False
         with self._lock:
             form = self._form
             action_type = self._action_type
         if form is None or action_type is None or form.IsDisposed:
             return False
+        completed = threading.Event()
+        outcome = {"ok": False}
+
+        def invoke_action() -> None:
+            try:
+                outcome["ok"] = action() is not False
+            except Exception:
+                logger.debug("native call avatar action failed", exc_info=True)
+            finally:
+                completed.set()
+
         try:
-            form.BeginInvoke(action_type(action))
-            return True
+            form.BeginInvoke(action_type(invoke_action))
         except Exception:
             logger.debug("could not update native call avatar", exc_info=True)
             return False
+        if not completed.wait(max(0.1, float(timeout_seconds))):
+            logger.warning("native call avatar action timed out")
+            return False
+        return bool(outcome["ok"])
 
     def show_at(self, x: int, y: int, width: int, height: int) -> bool:
+        width = max(1, int(width))
+        height = max(1, int(height))
+        x, y = _clamp_window_position(
+            int(x),
+            int(y),
+            width,
+            height,
+            _virtual_desktop_bounds(),
+        )
         with self._lock:
             self._requested_visible = True
-            self._x = int(x)
-            self._y = int(y)
-            self._width = max(1, int(width))
-            self._height = max(1, int(height))
+            self._x = x
+            self._y = y
+            self._width = width
+            self._height = height
 
         def show() -> None:
             with self._lock:
@@ -902,13 +933,28 @@ class NativeCallAvatarBubble:
                 0,
                 SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW,
             )
+            visible = bool(form.Visible and user32.IsWindowVisible(hwnd))
+            with self._lock:
+                self._visible = visible
+            return visible
 
         return self._invoke(show)
 
     def hide(self) -> bool:
         with self._lock:
             self._requested_visible = False
-        return self._invoke(lambda: self._form.Hide() if self._form is not None else None)
+            self._visible = False
+
+        def hide_form() -> bool:
+            if self._form is not None:
+                self._form.Hide()
+            return True
+
+        return self._invoke(hide_form)
+
+    def is_visible(self) -> bool:
+        with self._lock:
+            return bool(self._requested_visible and self._visible)
 
     def position(self) -> tuple[int, int, int, int]:
         with self._lock:
@@ -920,6 +966,7 @@ class NativeCallAvatarBubble:
                 return
             self._closed = True
             self._requested_visible = False
+            self._visible = False
 
         def shutdown() -> None:
             if self._form is not None:
@@ -1327,11 +1374,21 @@ class DesktopApi:
             )
             if resized:
                 bounds = _window_bounds(CALL_OVERLAY_TITLE)
-                if self._avatar_bubble and bounds:
+                if bounds:
                     with self._call_overlay_lock:
                         self._call_overlay_collapsed = True
-                    _set_window_visible_without_focus(CALL_OVERLAY_TITLE, False)
-                    self._avatar_bubble.show_at(*bounds)
+                    bubble_visible = bool(
+                        self._avatar_bubble
+                        and self._avatar_bubble.show_at(*bounds)
+                    )
+                    _set_window_visible_without_focus(
+                        CALL_OVERLAY_TITLE,
+                        not bubble_visible,
+                    )
+                    if not bubble_visible:
+                        logger.warning(
+                            "native call avatar unavailable; keeping the collapsed WebView visible"
+                        )
                 else:
                     width, height = self.expanded_call_overlay_size()
                     _animate_window_resize_without_focus(
@@ -1490,6 +1547,10 @@ class DesktopApi:
             return False
         x, y, width, height = bubble.position()
         return bubble.show_at(x, y, width, height)
+
+    def collapsed_avatar_visible(self) -> bool:
+        bubble = self._avatar_bubble
+        return bool(bubble and bubble.is_visible())
 
     def hide_collapsed_avatar(self) -> bool:
         return bool(self._avatar_bubble and self._avatar_bubble.hide())
@@ -2012,13 +2073,18 @@ def main() -> int:
                     _window_hidden_or_minimized(WINDOW_TITLE),
                 )
                 should_show_bubble = should_show and bool(payload.get("collapsed"))
-                should_show_overlay = should_show and not should_show_bubble and overlay_ready
-                if should_show_bubble != bubble_visible:
-                    if should_show_bubble:
-                        bubble_visible = desktop_api.show_collapsed_avatar()
-                    else:
+                actual_bubble_visible = desktop_api.collapsed_avatar_visible()
+                if should_show_bubble:
+                    bubble_visible = actual_bubble_visible or desktop_api.show_collapsed_avatar()
+                else:
+                    if bubble_visible or actual_bubble_visible:
                         desktop_api.hide_collapsed_avatar()
-                        bubble_visible = False
+                    bubble_visible = False
+                should_show_overlay = (
+                    should_show
+                    and overlay_ready
+                    and (not should_show_bubble or not bubble_visible)
+                )
                 if should_show_overlay != visible:
                     if should_show_overlay:
                         desktop_api.apply_call_overlay_opacity()

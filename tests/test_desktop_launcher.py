@@ -52,21 +52,28 @@ class FakeWindow:
 
 
 class FakeAvatarBubble:
-    def __init__(self) -> None:
+    def __init__(self, *, show_result: bool = True) -> None:
         self.calls: list[tuple[str, object]] = []
         self.bounds = (700, 400, 96, 96)
+        self.show_result = show_result
+        self.visible = False
 
     def show_at(self, x: int, y: int, width: int, height: int) -> bool:
         self.bounds = (x, y, width, height)
         self.calls.append(("show_at", self.bounds))
-        return True
+        self.visible = self.show_result
+        return self.show_result
 
     def hide(self) -> bool:
         self.calls.append(("hide", None))
+        self.visible = False
         return True
 
     def position(self) -> tuple[int, int, int, int]:
         return self.bounds
+
+    def is_visible(self) -> bool:
+        return self.visible
 
 
 class DesktopLauncherTests(unittest.TestCase):
@@ -393,6 +400,25 @@ class DesktopLauncherTests(unittest.TestCase):
             self.api.sync_call_overlay({"active": True, "minimized": True})
 
         self.assertFalse(self.api.call_overlay_collapsed())
+
+    def test_overlay_collapse_keeps_webview_fallback_when_avatar_cannot_show(self) -> None:
+        bubble = FakeAvatarBubble(show_result=False)
+        self.api.bind_windows(FakeWindow(), FakeWindow())
+        self.api.bind_avatar_bubble(bubble)
+        self.api.sync_call_overlay({"active": True, "minimized": True})
+
+        with (
+            patch("start_xixi_desktop._animate_window_resize_without_focus", return_value=True),
+            patch("start_xixi_desktop._window_bounds", return_value=(700, 400, 64, 64)),
+            patch("start_xixi_desktop._set_window_visible_without_focus") as set_visible,
+        ):
+            result = self.api.collapse_call_overlay()
+
+        self.assertEqual(result, {"ok": True})
+        self.assertTrue(self.api.call_overlay_collapsed())
+        self.assertFalse(self.api.collapsed_avatar_visible())
+        self.assertEqual(bubble.calls[-1], ("show_at", (700, 400, 64, 64)))
+        set_visible.assert_called_once_with(CALL_OVERLAY_TITLE, True)
 
     def test_overlay_header_uses_avatar_restore_and_hide_button(self) -> None:
         studio = Path(__file__).parents[1] / "studio"
